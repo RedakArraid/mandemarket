@@ -313,13 +313,13 @@ export default function SellersManager() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500">Ventes</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {formatCurrency(selectedSeller.totalSales / 100)}
+                  {formatCurrency(selectedSeller.totalSales)}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500">Gains</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {formatCurrency(selectedSeller.totalEarnings / 100)}
+                  {formatCurrency(selectedSeller.totalEarnings)}
                 </p>
               </div>
             </div>

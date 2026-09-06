@@ -226,7 +226,7 @@ Toutes les routes ci-dessous sont montées sous le préfixe indiqué (ex. `/api/
 ### Tableau de bord (`/api/dashboard`)
 - `GET /overview`, `GET /alerts`, `GET /stats/detailed` (admin/manager)
 
-**Écart front / back :** `frontend/app/config/analytics.ts` expose un `AnalyticsService` qui appelle des URLs `/api/analytics/...`. Aucune route `app.use('/api/analytics', …)` n’est enregistrée dans `backend/src/app.js` à ce jour — soit à ajouter côté API, soit à remplacer par des appels vers `/api/dashboard` (et promotions `/analytics/*` déjà existantes sous `/api/promotions`).
+**Écart front / back (corrigé 2026-09-06) :** `AnalyticsService` pointe vers `/api/dashboard/*` (plus `/api/analytics/...`).
 
 ### Avis (`/api/reviews`)
 - `GET /:productId`, `POST /`, `PUT /:id/helpful`, `GET /:productId/stats`

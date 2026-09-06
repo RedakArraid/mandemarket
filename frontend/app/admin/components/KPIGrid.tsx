@@ -191,7 +191,7 @@ const KPIGrid: React.FC<KPIGridProps> = ({ data, loading = false, marketplaceDat
       value: marketplaceData?.payoutsPending || 0,
       icon: BanknotesIcon,
       color: 'yellow' as const,
-      subtitle: marketplaceData ? formatCurrency(marketplaceData.payoutsTotalAmount) + ' FCFA' : '0 FCFA'
+      subtitle: marketplaceData ? formatCurrency(marketplaceData.payoutsTotalAmount) : '0 FCFA'
     },
     {
       title: 'Ruptures de Stock',

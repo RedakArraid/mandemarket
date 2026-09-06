@@ -1,4 +1,6 @@
 // Schéma Prisma pour MandeMarket - E-commerce Complet
+// Convention monétaire : tous les montants sont stockés en CENTIMES (Int).
+// Affichage FCFA = montant / 100.
 
 generator client {
   provider = "prisma-client-js"
@@ -48,8 +50,8 @@ model Seller {
   status          String   @default("pending") // pending, approved, suspended
   commissionRate  Float    @default(10) // Pourcentage prélevé par la plateforme
   paymentInfo     Json?    // { method, account, name, ... } pour les versements
-  totalSales      Float    @default(0) // Chiffre d'affaires total (centimes)
-  totalEarnings   Float    @default(0) // Revenus nets après commission (centimes)
+  totalSales      Int      @default(0) // CA total (centimes)
+  totalEarnings   Int      @default(0) // Revenus nets après commission (centimes)
   rating          Float    @default(0) // Note moyenne (1-5)
   reviewCount     Int      @default(0)
   products        Product[]
@@ -127,7 +129,7 @@ model Customer {
   address        Address?
   orders         Order[]
   returnRequests ReturnRequest[]
-  totalSpent    Float    @default(0)
+  totalSpent    Int      @default(0) // centimes
   loyaltyPoints Int      @default(0)
   status        String   @default("active")
   createdAt     DateTime @default(now())
@@ -156,10 +158,10 @@ model Order {
   userId        String?
   user          User?       @relation(fields: [userId], references: [id])
   status        OrderStatus @default(PENDING)
-  totalAmount   Float
-  taxAmount     Float       @default(0)
-  shippingCost  Float       @default(0)
-  discountAmount Float      @default(0)
+  totalAmount   Int         // centimes
+  taxAmount     Int         @default(0) // centimes
+  shippingCost  Int         @default(0) // centimes
+  discountAmount Int        @default(0) // centimes
   promotionCode String?
   items          OrderItem[]
   payment        Payment?
@@ -180,10 +182,10 @@ model OrderItem {
   sellerId      String?  // Pour commission et dashboard vendeur
   seller        Seller?  @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   quantity      Int
-  unitPrice     Float
-  totalPrice    Float
-  commissionAmount Float @default(0) // Commission plateforme (centimes)
-  sellerEarnings   Float @default(0) // Revenus vendeur après commission (centimes)
+  unitPrice     Int      // centimes
+  totalPrice    Int      // centimes
+  commissionAmount Int   @default(0) // Commission plateforme (centimes)
+  sellerEarnings   Int   @default(0) // Revenus vendeur après commission (centimes)
   createdAt     DateTime @default(now())
 
   @@index([sellerId])
@@ -194,7 +196,7 @@ model Payment {
   id            String        @id @default(uuid())
   orderId       String        @unique
   order         Order         @relation(fields: [orderId], references: [id])
-  amount        Float
+  amount        Int           // centimes
   method        PaymentMethod
   status        PaymentStatus @default(PENDING)
   transactionId String?
@@ -226,8 +228,8 @@ model Promotion {
   name          String
   description   String
   type          PromotionType
-  value         Float
-  minAmount     Float?
+  value         Int      // % ou montant fixe en centimes selon type
+  minAmount     Int?     // seuil min en centimes
   maxUses       Int?
   usedCount     Int      @default(0)
   startDate     DateTime
@@ -341,7 +343,7 @@ model SellerPayout {
   id          String   @id @default(uuid())
   sellerId    String
   seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  amount      Float    // Montant versé (centimes)
+  amount      Int      // Montant versé (centimes)
   status      String   @default("pending") // pending, processing, completed, failed
   method      String?  // bank_transfer, mobile_money, etc.
   reference   String?

@@ -9,16 +9,16 @@ const orderSchema = z.object({
   customerId: z.string().uuid(),
   userId: z.string().uuid().optional(),
   status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']).optional(),
-  totalAmount: z.number().positive(),
-  taxAmount: z.number().min(0).optional(),
-  shippingCost: z.number().min(0).optional(),
-  discountAmount: z.number().min(0).optional(),
+  totalAmount: z.number().int().positive(),
+  taxAmount: z.number().int().min(0).optional(),
+  shippingCost: z.number().int().min(0).optional(),
+  discountAmount: z.number().int().min(0).optional(),
   promotionCode: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
-    unitPrice: z.number().positive()
+    unitPrice: z.number().int().positive()
   }))
 });
 
@@ -44,12 +44,12 @@ const checkoutSchema = z.object({
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
-    unitPrice: z.number().positive()
+    unitPrice: z.number().int().positive()
   })).min(1),
-  totalAmount: z.number().positive(),
+  totalAmount: z.number().int().positive(),
   paymentMethod: z.string().default('cash_on_delivery'),
   shippingMethod: z.string().optional(),
-  shippingCost: z.number().min(0).optional().default(0),
+  shippingCost: z.number().int().min(0).optional().default(0),
   region: z.enum(['africa', 'europe']).optional().default('africa'),
   notes: z.string().optional()
 });

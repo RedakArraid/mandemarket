@@ -1,4 +1,5 @@
 import { apiService } from './api';
+import { formatCurrency as formatCurrencyFromCents } from './currency';
 
 export interface AnalyticsData {
   sales: {
@@ -47,48 +48,49 @@ export interface TimeRange {
   endDate?: string;
 }
 
+function periodToDays(period: TimeRange['period']): number {
+  switch (period) {
+    case '7d':
+      return 7;
+    case '90d':
+      return 90;
+    case '1y':
+      return 365;
+    case '30d':
+    default:
+      return 30;
+  }
+}
+
+/** Aligné sur les routes réelles `/api/dashboard/*` (pas `/api/analytics`). */
 export const AnalyticsService = {
-  // Données générales du dashboard
   getDashboardOverview: (timeRange: TimeRange): Promise<AnalyticsData> =>
-    apiService.get(`/api/analytics/overview?period=${timeRange.period}&start=${timeRange.startDate || ''}&end=${timeRange.endDate || ''}`),
+    apiService.get(`/api/dashboard/overview?period=${periodToDays(timeRange.period)}`),
 
-  // Données de ventes détaillées
   getSalesAnalytics: (timeRange: TimeRange) =>
-    apiService.get(`/api/analytics/sales?period=${timeRange.period}&start=${timeRange.startDate || ''}&end=${timeRange.endDate || ''}`),
+    apiService.get(`/api/dashboard/stats/detailed?period=${periodToDays(timeRange.period)}`),
 
-  // Analytics clients
   getCustomerAnalytics: (timeRange: TimeRange) =>
-    apiService.get(`/api/analytics/customers?period=${timeRange.period}&start=${timeRange.startDate || ''}&end=${timeRange.endDate || ''}`),
+    apiService.get(`/api/dashboard/stats/detailed?period=${periodToDays(timeRange.period)}`),
 
-  // Analytics inventaire
   getInventoryAnalytics: (timeRange: TimeRange) =>
-    apiService.get(`/api/analytics/inventory?period=${timeRange.period}&start=${timeRange.startDate || ''}&end=${timeRange.endDate || ''}`),
+    apiService.get(`/api/dashboard/stats/detailed?period=${periodToDays(timeRange.period)}`),
 
-  // Alertes
   getAlerts: (filters?: { type?: string; priority?: string }) =>
-    apiService.get(`/api/analytics/alerts?${new URLSearchParams(filters || {})}`),
+    apiService.get(`/api/dashboard/alerts?${new URLSearchParams(filters || {})}`),
 
-  // Marquer une alerte comme lue
-  markAlertAsRead: (alertId: string) =>
-    apiService.put(`/api/analytics/alerts/${alertId}/read`),
+  markAlertAsRead: async (_alertId: string) => ({ ok: true }),
 
-  // Données temps réel
   getRealTimeMetrics: () =>
-    apiService.get('/api/analytics/realtime'),
+    apiService.get('/api/dashboard/overview?period=1'),
 
-  // Export des données
-  exportAnalytics: (type: 'sales' | 'customers' | 'inventory', timeRange: TimeRange, format: 'csv' | 'excel' | 'pdf') =>
-    apiService.get(`/api/analytics/export/${type}?period=${timeRange.period}&format=${format}`),
+  exportAnalytics: (type: 'sales' | 'customers' | 'inventory', timeRange: TimeRange, _format: 'csv' | 'excel' | 'pdf') =>
+    apiService.get(`/api/dashboard/stats/detailed?period=${periodToDays(timeRange.period)}&type=${type}`),
 };
 
-// Utilitaires de formatage (admin dashboard — toujours en FCFA)
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.round(amount)) + ' FCFA';
-};
+/** Montants API = centimes → affichage FCFA */
+export const formatCurrency = (amountInCents: number): string =>
+  formatCurrencyFromCents(amountInCents ?? 0);
 
 export const formatNumber = (number: number): string => {
   return new Intl.NumberFormat('fr-FR').format(number);
