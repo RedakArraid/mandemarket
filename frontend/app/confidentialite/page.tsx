@@ -38,7 +38,7 @@ export default function ConfidentialitePage() {
               <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-100">
                 <p className="text-blue-900 font-semibold mb-2">🔒 Votre vie privée est importante pour nous</p>
                 <p className="text-blue-800 text-sm">
-                  Cette politique explique comment LogoDouman collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web.
+                  Cette politique explique comment MandeMarket collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web.
                 </p>
               </div>
 
@@ -172,7 +172,7 @@ export default function ConfidentialitePage() {
               </div>
 
               <p className="text-gray-700 leading-relaxed mb-6">
-                Pour exercer ces droits, contactez-nous à : <strong className="text-orange-600">contact@logodouman.com</strong>
+                Pour exercer ces droits, contactez-nous à : <strong className="text-orange-600">contact@mandemarket.com</strong>
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">8. Cookies</h2>
@@ -199,9 +199,9 @@ export default function ConfidentialitePage() {
               </p>
               <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
                 <p className="text-gray-900 font-semibold mb-3">Responsable de la protection des données</p>
-                <p className="text-gray-700 mb-2">📧 Email : contact@logodouman.com</p>
+                <p className="text-gray-700 mb-2">📧 Email : contact@mandemarket.com</p>
                 <p className="text-gray-700 mb-2">📞 Téléphone : +225 XX XX XX XX XX</p>
-                <p className="text-gray-700">📍 Adresse : LogoDouman, Abidjan, Plateau, Côte d'Ivoire</p>
+                <p className="text-gray-700">📍 Adresse : MandeMarket, Abidjan, Plateau, Côte d'Ivoire</p>
               </div>
 
             </div>

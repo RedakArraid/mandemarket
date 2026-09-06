@@ -60,7 +60,7 @@ export default function AdminLogin() {
           <div className="mx-auto w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mb-4">
             <LockClosedIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">LogoDouman</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">MandeMarket</h1>
           <p className="text-orange-600 font-medium text-lg">Administration & Vendeurs</p>
           <p className="text-gray-500 mt-2">Connectez-vous selon votre compte (admin ou vendeur)</p>
         </div>
@@ -87,8 +87,8 @@ export default function AdminLogin() {
             {/* Informations de test */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-blue-800 mb-2">Comptes de test :</h4>
-              <p className="text-sm text-blue-700">Admin : admin@logodouman.com / <strong>Admin@2024!</strong></p>
-              <p className="text-sm text-blue-700">Vendeur : vendeur@logodouman.com / <strong>Vendeur@2024!</strong></p>
+              <p className="text-sm text-blue-700">Admin : admin@mandemarket.com / <strong>Admin@2024!</strong></p>
+              <p className="text-sm text-blue-700">Vendeur : vendeur@mandemarket.com / <strong>Vendeur@2024!</strong></p>
             </div>
 
             {/* Champ Email */}
@@ -103,7 +103,7 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                  placeholder="admin@logodouman.com"
+                  placeholder="admin@mandemarket.com"
                   required
                   autoComplete="email"
                   disabled={isLoading}
@@ -164,7 +164,7 @@ export default function AdminLogin() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
-            © 2024 LogoDouman. Tous droits réservés.
+            © 2024 MandeMarket. Tous droits réservés.
           </p>
           <p className="text-xs text-gray-400 mt-2">
             Besoin d'aide ? Contactez l'administrateur système.

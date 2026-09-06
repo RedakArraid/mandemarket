@@ -1,4 +1,4 @@
-// Données par défaut centralisées pour LogoDouman
+// Données par défaut centralisées pour MandeMarket
 // Interfaces définies localement
 
 // Interfaces définies localement

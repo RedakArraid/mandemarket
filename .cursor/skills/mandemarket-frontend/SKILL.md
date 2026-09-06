@@ -1,9 +1,9 @@
 ---
-name: logodouman-frontend
-description: Développe le frontend LogoDouman (Next.js 14, React, TypeScript, Tailwind). Pages boutique, admin, espace vendeur, composants, contextes React. Use when working on LogoDouman UI, React components, Next.js pages, or frontend integration.
+name: mandemarket-frontend
+description: Développe le frontend MandeMarket (Next.js 14, React, TypeScript, Tailwind). Pages boutique, admin, espace vendeur, composants, contextes React. Use when working on MandeMarket UI, React components, Next.js pages, or frontend integration.
 ---
 
-# LogoDouman - Agent Frontend
+# MandeMarket - Agent Frontend
 
 ## Stack
 
@@ -16,7 +16,7 @@ description: Développe le frontend LogoDouman (Next.js 14, React, TypeScript, T
 ## Répertoires clés
 
 ```
-logodouman/frontend/
+mandemarket/frontend/
 ├── app/
 │   ├── page.tsx, layout.tsx
 │   ├── boutique/           # Catalogue & fiche produit

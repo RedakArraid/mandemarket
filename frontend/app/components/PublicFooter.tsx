@@ -103,7 +103,7 @@ export default function PublicFooter() {
           {/* À propos */}
           <div>
             <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-              LogoDouman
+              MandeMarket
             </h3>
             <p className="text-gray-400 leading-relaxed mb-4">
               La marketplace de référence en Afrique de l&apos;Ouest. Électronique, mode, alimentation, artisanat et bien plus.
@@ -140,8 +140,8 @@ export default function PublicFooter() {
               </li>
               <li className="flex items-start gap-3 text-gray-400">
                 <EnvelopeIcon className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                <a href="mailto:contact@logodouman.com" className="hover:text-white transition-colors">
-                  contact@logodouman.com
+                <a href="mailto:contact@mandemarket.com" className="hover:text-white transition-colors">
+                  contact@mandemarket.com
                 </a>
               </li>
               <li className="flex items-start gap-3 text-gray-400">
@@ -185,7 +185,7 @@ export default function PublicFooter() {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
-              &copy; {new Date().getFullYear()} LogoDouman. Tous droits réservés.
+              &copy; {new Date().getFullYear()} MandeMarket. Tous droits réservés.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>

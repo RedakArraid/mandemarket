@@ -96,7 +96,7 @@ export default function RegisterPage() {
                 <UserIcon className="w-8 h-8 text-orange-600" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900">Créer un compte</h1>
-              <p className="text-gray-500 mt-1 text-sm">Rejoignez la communauté LogoDouman</p>
+              <p className="text-gray-500 mt-1 text-sm">Rejoignez la communauté MandeMarket</p>
             </div>
 
             {/* Erreur */}

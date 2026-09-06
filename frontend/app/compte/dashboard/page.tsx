@@ -50,7 +50,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
     const fetchOrders = async () => {
-      const token = localStorage.getItem('logodouman_customer_token');
+      const token = localStorage.getItem('mandemarket_customer_token');
       try {
         const res = await fetch(`${API}/api/account/orders?limit=3`, {
           headers: { Authorization: `Bearer ${token}` },

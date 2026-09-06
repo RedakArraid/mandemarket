@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'logodouman_wishlist';
+const STORAGE_KEY = 'mandemarket_wishlist';
 
 export function useWishlist() {
   const [wishlistIds, setWishlistIds] = useState<number[]>([]);

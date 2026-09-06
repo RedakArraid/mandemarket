@@ -37,7 +37,7 @@ export default function CGVPage() {
               
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">1. Objet</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Les présentes Conditions Générales de Vente (CGV) régissent les ventes de sacs à main et accessoires proposés par LogoDouman sur le site logodouman.genea.space. Toute commande implique l'acceptation sans réserve des présentes CGV.
+                Les présentes Conditions Générales de Vente (CGV) régissent les ventes de sacs à main et accessoires proposés par MandeMarket sur le site mandemarket.soubadigital.com. Toute commande implique l'acceptation sans réserve des présentes CGV.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">2. Produits</h2>
@@ -47,12 +47,12 @@ export default function CGVPage() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">3. Prix</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Les prix sont indiqués en Francs CFA (FCFA), toutes taxes comprises (TTC). LogoDouman se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix figurant sur le site le jour de la commande sera le seul applicable à l'acheteur.
+                Les prix sont indiqués en Francs CFA (FCFA), toutes taxes comprises (TTC). MandeMarket se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix figurant sur le site le jour de la commande sera le seul applicable à l'acheteur.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">4. Commande</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Le client passe commande via le site internet ou par téléphone. Toute commande vaut acceptation des prix et descriptions des produits disponibles à la vente. La vente ne sera considérée comme définitive qu'après l'envoi au client de la confirmation de l'acceptation de la commande par LogoDouman.
+                Le client passe commande via le site internet ou par téléphone. Toute commande vaut acceptation des prix et descriptions des produits disponibles à la vente. La vente ne sera considérée comme définitive qu'après l'envoi au client de la confirmation de l'acceptation de la commande par MandeMarket.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">5. Paiement</h2>
@@ -70,7 +70,7 @@ export default function CGVPage() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">6. Livraison</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Les livraisons sont effectuées à l'adresse indiquée par le client lors de la commande. Les délais de livraison sont donnés à titre indicatif. LogoDouman ne pourra être tenu responsable des conséquences dues à un retard d'acheminement.
+                Les livraisons sont effectuées à l'adresse indiquée par le client lors de la commande. Les délais de livraison sont donnés à titre indicatif. MandeMarket ne pourra être tenu responsable des conséquences dues à un retard d'acheminement.
               </p>
               <p className="text-gray-700 leading-relaxed mb-6">
                 <strong>Zone de livraison :</strong> Abidjan et environs<br />
@@ -92,7 +92,7 @@ export default function CGVPage() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">9. Responsabilité</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                LogoDouman ne saurait être tenu responsable de l'inexécution du contrat en cas de rupture de stock, d'indisponibilité du produit, de force majeure, de perturbation ou grève totale ou partielle notamment des services postaux et moyens de transport.
+                MandeMarket ne saurait être tenu responsable de l'inexécution du contrat en cas de rupture de stock, d'indisponibilité du produit, de force majeure, de perturbation ou grève totale ou partielle notamment des services postaux et moyens de transport.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">10. Données personnelles</h2>
@@ -110,9 +110,9 @@ export default function CGVPage() {
                 Pour toute question relative aux présentes CGV, vous pouvez nous contacter :
               </p>
               <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
-                <p className="text-gray-900 font-semibold mb-2">LogoDouman</p>
+                <p className="text-gray-900 font-semibold mb-2">MandeMarket</p>
                 <p className="text-gray-700 mb-1">📍 Abidjan, Plateau, Côte d'Ivoire</p>
-                <p className="text-gray-700 mb-1">📧 contact@logodouman.com</p>
+                <p className="text-gray-700 mb-1">📧 contact@mandemarket.com</p>
                 <p className="text-gray-700">📞 +225 XX XX XX XX XX</p>
               </div>
 

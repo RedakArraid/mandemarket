@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo 🐳 ======================================
-echo 🚀 Installation automatique LogoDouman
+echo 🚀 Installation automatique MandeMarket
 echo 🐳 ======================================
 
 REM Vérifier les privilèges administrateur
@@ -76,7 +76,7 @@ REM Vérifier l'état
 echo   🔍 Vérification de l'état...
 docker-compose ps
 
-echo ✅ LogoDouman démarré avec succès !
+echo ✅ MandeMarket démarré avec succès !
 echo 🌐 URLs d'accès :
 echo    Frontend: http://localhost:3000
 echo    Backend: http://localhost:4002

@@ -1,4 +1,4 @@
-# LogoDouman — Credentials de test
+# MandeMarket — Credentials de test
 
 > **Documentation** : revue **1ᵉʳ mai 2026**. Les mots de passe correspondent au script de seed (`backend/scripts/seed.js`) et aux variables `SEED_*` dans `backend/.env.docker` si vous utilisez Docker.
 
@@ -8,7 +8,7 @@
 
 ## Types d'utilisateurs
 
-LogoDouman distingue **deux systèmes d'authentification parallèles** :
+MandeMarket distingue **deux systèmes d'authentification parallèles** :
 
 - **Système backoffice** (admin, seller, manager) → JWT `{userId, role}` → login via `/api/auth/login`
 - **Système client** (customer) → JWT `{type:"customer", customerId, userId, email}` → login via `/api/account/login`
@@ -19,7 +19,7 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Champ | Valeur |
 |-------|--------|
-| Email | `admin@logodouman.com` |
+| Email | `admin@mandemarket.com` |
 | Mot de passe | `Admin@2024!` |
 | Rôle | `admin` |
 | Interface | `/admin` (dashboard admin) |
@@ -38,7 +38,7 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Champ | Valeur |
 |-------|--------|
-| Email | `manager@logodouman.com` |
+| Email | `manager@mandemarket.com` |
 | Mot de passe | `Manager@2024!` |
 | Rôle | `user` |
 | Interface | `/admin` (accès limité) |
@@ -56,7 +56,7 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Champ | Valeur |
 |-------|--------|
-| Email | `vendeur@logodouman.com` |
+| Email | `vendeur@mandemarket.com` |
 | Mot de passe | `Vendeur@2024!` |
 | Rôle | `seller` |
 | Boutique | **Boutique Aminata** (`/boutique-aminata`) |
@@ -82,7 +82,7 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Champ | Valeur |
 |-------|--------|
-| Email | `client@logodouman.com` |
+| Email | `client@mandemarket.com` |
 | Mot de passe | `Client@2024!` |
 | Nom | Fatoumata Diallo |
 | Téléphone | +225 01 02 03 04 05 |
@@ -102,7 +102,7 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Champ | Valeur |
 |-------|--------|
-| Email | `client.fr@logodouman.com` |
+| Email | `client.fr@mandemarket.com` |
 | Mot de passe | `ClientFR@2024!` |
 | Nom | Sophie Martin |
 | Téléphone | +33 6 12 34 56 78 |
@@ -122,11 +122,11 @@ LogoDouman distingue **deux systèmes d'authentification parallèles** :
 
 | Type | Email | Mot de passe | Interface |
 |------|-------|-------------|-----------|
-| Admin | admin@logodouman.com | `Admin@2024!` | `/admin` |
-| Manager | manager@logodouman.com | `Manager@2024!` | `/admin` |
-| Vendeur | vendeur@logodouman.com | `Vendeur@2024!` | `/vendeur/dashboard` |
-| Client CI | client@logodouman.com | `Client@2024!` | `/compte/login` |
-| Client FR | client.fr@logodouman.com | `ClientFR@2024!` | `/compte/login` |
+| Admin | admin@mandemarket.com | `Admin@2024!` | `/admin` |
+| Manager | manager@mandemarket.com | `Manager@2024!` | `/admin` |
+| Vendeur | vendeur@mandemarket.com | `Vendeur@2024!` | `/vendeur/dashboard` |
+| Client CI | client@mandemarket.com | `Client@2024!` | `/compte/login` |
+| Client FR | client.fr@mandemarket.com | `ClientFR@2024!` | `/compte/login` |
 
 ---
 

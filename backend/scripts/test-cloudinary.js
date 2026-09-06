@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Script de test Cloudinary pour LogoDouman
+ * Script de test Cloudinary pour MandeMarket
  * 
  * Usage:
  *   node scripts/test-cloudinary.js
@@ -81,16 +81,16 @@ cloudinary.api.ping()
     if (folders.folders && folders.folders.length > 0) {
       console.log('   Dossiers trouvés :');
       folders.folders.forEach(folder => {
-        console.log(`   📁 ${folder.name} ${folder.path === 'logodouman' ? '← LogoDouman' : ''}`);
+        console.log(`   📁 ${folder.name} ${folder.path === 'mandemarket' ? '← MandeMarket' : ''}`);
       });
       
-      // Vérifier si le dossier logodouman existe
-      const logodoumanFolder = folders.folders.find(f => f.path === 'logodouman');
-      if (logodoumanFolder) {
-        console.log('\n   ✅ Le dossier "logodouman" existe déjà');
-        return cloudinary.api.resources({ type: 'upload', prefix: 'logodouman/', max_results: 10 });
+      // Vérifier si le dossier mandemarket existe
+      const mandemarketFolder = folders.folders.find(f => f.path === 'mandemarket');
+      if (mandemarketFolder) {
+        console.log('\n   ✅ Le dossier "mandemarket" existe déjà');
+        return cloudinary.api.resources({ type: 'upload', prefix: 'mandemarket/', max_results: 10 });
       } else {
-        console.log('\n   ℹ️  Le dossier "logodouman" sera créé au premier upload');
+        console.log('\n   ℹ️  Le dossier "mandemarket" sera créé au premier upload');
         return { resources: [] };
       }
     } else {
@@ -100,7 +100,7 @@ cloudinary.api.ping()
   })
   .then(resources => {
     if (resources.resources && resources.resources.length > 0) {
-      console.log(`\n   📸 Images dans "logodouman" : ${resources.resources.length}`);
+      console.log(`\n   📸 Images dans "mandemarket" : ${resources.resources.length}`);
       resources.resources.slice(0, 5).forEach(resource => {
         console.log(`      • ${resource.public_id.split('/').pop()} (${(resource.bytes / 1024).toFixed(1)} KB)`);
       });

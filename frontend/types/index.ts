@@ -1,4 +1,4 @@
-// Types unifiés pour le projet LogoDouman
+// Types unifiés pour le projet MandeMarket
 // Ces types doivent correspondre exactement au schéma Prisma
 
 export interface User {

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const API      = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://logodouman.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
 
 // Toutes les locales supportées — utilisées pour les <xhtml:link> dans le sitemap
 const LOCALES = [

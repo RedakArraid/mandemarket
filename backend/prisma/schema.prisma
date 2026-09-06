@@ -1,4 +1,4 @@
-// Schéma Prisma pour LogoDouman - E-commerce Complet
+// Schéma Prisma pour MandeMarket - E-commerce Complet
 
 generator client {
   provider = "prisma-client-js"

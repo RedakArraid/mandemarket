@@ -2,7 +2,7 @@
 set -e
 
 echo "========================================"
-echo "LogoDouman Backend - Démarrage Docker"
+echo "MandeMarket Backend - Démarrage Docker"
 echo "========================================"
 
 # Fonction pour attendre un service avec timeout
@@ -97,7 +97,7 @@ if [ "$SEED_DATA" = "true" ]; then
     node scripts/seed.js 2>/dev/null || echo "Seed optionnel ignoré"
 fi
 
-echo "Configuration terminée - Démarrage de LogoDouman Backend..."
+echo "Configuration terminée - Démarrage de MandeMarket Backend..."
 echo "Port: ${PORT:-4002} | Environnement: ${NODE_ENV:-production}"
 echo "========================================"
 

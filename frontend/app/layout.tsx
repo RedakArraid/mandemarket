@@ -6,7 +6,7 @@ import { CustomerAuthProvider } from './contexts/CustomerAuthContext'
 import { RegionProvider } from './contexts/RegionContext'
 import LangSync from './components/LangSync'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://logodouman.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
 
 // Locales couvertes : toute l'Afrique de l'Ouest francophone + Europe francophone + EN
 const HREFLANG_LANGUAGES: Record<string, string> = {
@@ -39,29 +39,29 @@ const HREFLANG_LANGUAGES: Record<string, string> = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'LogoDouman — Marketplace Afrique & Europe',
-    template: '%s | LogoDouman',
+    default: 'MandeMarket — Marketplace Afrique & Europe',
+    template: '%s | MandeMarket',
   },
   description: 'Achetez en ligne en toute confiance : mode, sacs, accessoires — livraison en Afrique de l\'Ouest et en Europe. Paiement en FCFA ou en EUR.',
-  keywords: 'e-commerce afrique, marketplace côte d\'ivoire, boutique en ligne, sacs, mode africaine, LogoDouman',
-  authors: [{ name: 'LogoDouman' }],
+  keywords: 'e-commerce afrique, marketplace côte d\'ivoire, boutique en ligne, sacs, mode africaine, MandeMarket',
+  authors: [{ name: 'MandeMarket' }],
   alternates: {
     canonical: SITE_URL,
     languages: HREFLANG_LANGUAGES,
   },
   openGraph: {
-    siteName:        'LogoDouman',
+    siteName:        'MandeMarket',
     type:            'website',
     locale:          'fr_CI',
     alternateLocale: ['fr_FR', 'fr_BE', 'fr_SN', 'en_GH', 'en_GB'],
-    title:           'LogoDouman — Marketplace Afrique & Europe',
+    title:           'MandeMarket — Marketplace Afrique & Europe',
     description:     'Achetez en ligne : mode, sacs, accessoires. Paiement en FCFA ou EUR. Livraison en Afrique de l\'Ouest et en Europe.',
     url:             SITE_URL,
   },
   twitter: {
     card:        'summary_large_image',
-    site:        '@logodouman',
-    title:       'LogoDouman — Marketplace Afrique & Europe',
+    site:        '@mandemarket',
+    title:       'MandeMarket — Marketplace Afrique & Europe',
     description: 'Mode, sacs, accessoires — livraison Afrique & Europe.',
   },
   robots: {

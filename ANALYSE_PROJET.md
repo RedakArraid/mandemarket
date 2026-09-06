@@ -1,4 +1,4 @@
-# 📊 Analyse Complète du Projet LogoDouman
+# 📊 Analyse Complète du Projet MandeMarket
 
 **Date d'analyse** : 2026-05-01  
 **Version du projet** : 2.1.0  
@@ -8,7 +8,7 @@
 
 ## 🎯 Vue d'Ensemble
 
-**LogoDouman** est une plateforme e-commerce / marketplace (catalogue multi-vendeurs, commissions, versements). Le dépôt est structuré en monorepo (**frontend** Next.js, **backend** Express + Prisma) et prévoit un déploiement Docker (local + production avec Traefik).
+**MandeMarket** est une plateforme e-commerce / marketplace (catalogue multi-vendeurs, commissions, versements). Le dépôt est structuré en monorepo (**frontend** Next.js, **backend** Express + Prisma) et prévoit un déploiement Docker (local + production avec Traefik).
 
 ### Caractéristiques principales
 
@@ -60,7 +60,7 @@
 ## 📁 Structure du Projet
 
 ```
-logodouman/
+mandemarket/
 ├── frontend/                 # Next.js 14 (App Router)
 │   ├── app/
 │   │   ├── page.tsx          # Accueil
@@ -298,25 +298,25 @@ Toutes les routes ci-dessous sont montées sous le préfixe indiqué (ex. `/api/
 
 ### Services Docker
 
-1. **Frontend** (`logodouman-frontend`)
+1. **Frontend** (`mandemarket-frontend`)
    - Port **hôte** : **3000** (mapping `3000:3000`)
    - Healthcheck : requête HTTP sur la racine du site
 
-2. **Backend** (`logodouman-backend`)
+2. **Backend** (`mandemarket-backend`)
    - Port **hôte** : **4002**
    - Dépend de PostgreSQL et Redis
    - Healthcheck : `GET /health`
 
-3. **PostgreSQL** (`logodouman-postgres`)
+3. **PostgreSQL** (`mandemarket-postgres`)
    - Image `postgres:16-alpine`
    - Port **hôte** : **5433** → `5432` dans le conteneur
-   - Volume : `postgres_data`, base `logodouman`
+   - Volume : `postgres_data`, base `mandemarket`
 
-4. **Redis** (`logodouman-redis`)
+4. **Redis** (`mandemarket-redis`)
    - Port **hôte** : **6380** → `6379` dans le conteneur
    - Authentification par mot de passe (voir `docker-compose.yml`)
 
-5. **Adminer** (`logodouman-adminer`)
+5. **Adminer** (`mandemarket-adminer`)
    - Port **hôte** : **8080**
 
 ### Scripts Docker Disponibles
@@ -469,8 +469,8 @@ npm run db:backup        # Sauvegarder la BDD
 
 #### Production
 - URLs : 
-  - Frontend : `https://logodouman.genea.space`
-  - Backend : `https://apilogodouman.genea.space`
+  - Frontend : `https://mandemarket.soubadigital.com`
+  - Backend : `https://apimandemarket.soubadigital.com`
 - Docker Compose
 - Variables d'environnement sécurisées
 - CDN Cloudinary
@@ -490,8 +490,8 @@ NODE_ENV=production
 
 **Frontend** :
 ```env
-NEXT_PUBLIC_API_URL=https://apilogodouman.genea.space
-NEXT_PUBLIC_SITE_URL=https://logodouman.genea.space
+NEXT_PUBLIC_API_URL=https://apimandemarket.soubadigital.com
+NEXT_PUBLIC_SITE_URL=https://mandemarket.soubadigital.com
 ```
 
 ---
@@ -602,7 +602,7 @@ NEXT_PUBLIC_SITE_URL=https://logodouman.genea.space
 
 ## 🎯 Conclusion
 
-**LogoDouman** est un projet e-commerce **professionnel et complet** avec :
+**MandeMarket** est un projet e-commerce **professionnel et complet** avec :
 
 - ✅ Architecture moderne et scalable
 - ✅ Stack technologique à jour

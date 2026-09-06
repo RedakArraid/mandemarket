@@ -22,7 +22,7 @@ export default function MentionsLegalesPage() {
               Mentions Légales
             </h1>
             <p className="text-lg text-gray-300">
-              Informations légales sur LogoDouman
+              Informations légales sur MandeMarket
             </p>
           </div>
         </div>
@@ -37,15 +37,15 @@ export default function MentionsLegalesPage() {
               
               <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Éditeur du site</h2>
               <div className="bg-orange-50 rounded-xl p-6 mb-6 border border-orange-100">
-                <p className="text-gray-900 font-semibold mb-4">LogoDouman</p>
+                <p className="text-gray-900 font-semibold mb-4">MandeMarket</p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Raison sociale :</strong> LogoDouman SARL
+                  <strong>Raison sociale :</strong> MandeMarket SARL
                 </p>
                 <p className="text-gray-700 mb-2">
                   <strong>Siège social :</strong> Abidjan, Plateau, Côte d'Ivoire
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Email :</strong> contact@logodouman.com
+                  <strong>Email :</strong> contact@mandemarket.com
                 </p>
                 <p className="text-gray-700 mb-2">
                   <strong>Téléphone :</strong> +225 XX XX XX XX XX
@@ -58,19 +58,19 @@ export default function MentionsLegalesPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">2. Hébergement</h2>
               <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-100">
                 <p className="text-gray-700 mb-2">
-                  <strong>Hébergeur :</strong> Genea.space
+                  <strong>Hébergeur :</strong> Contabo GmbH (VPS, Allemagne)
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Site web :</strong> https://genea.space
+                  <strong>Site web :</strong> https://mandemarket.soubadigital.com
                 </p>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">3. Propriété intellectuelle</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                L'ensemble du contenu de ce site (textes, images, vidéos, logos, etc.) est la propriété exclusive de LogoDouman, sauf mention contraire. Toute reproduction, distribution, modification, adaptation, retransmission ou publication de ces différents éléments est strictement interdite sans l'accord exprès par écrit de LogoDouman.
+                L'ensemble du contenu de ce site (textes, images, vidéos, logos, etc.) est la propriété exclusive de MandeMarket, sauf mention contraire. Toute reproduction, distribution, modification, adaptation, retransmission ou publication de ces différents éléments est strictement interdite sans l'accord exprès par écrit de MandeMarket.
               </p>
               <p className="text-gray-700 leading-relaxed mb-6">
-                La marque LogoDouman, ainsi que les logos et graphismes figurant sur le site sont des marques déposées. Toute reproduction totale ou partielle de ces marques et/ou logos sans autorisation préalable et écrite de LogoDouman est interdite.
+                La marque MandeMarket, ainsi que les logos et graphismes figurant sur le site sont des marques déposées. Toute reproduction totale ou partielle de ces marques et/ou logos sans autorisation préalable et écrite de MandeMarket est interdite.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">4. Protection des données personnelles</h2>
@@ -81,8 +81,8 @@ export default function MentionsLegalesPage() {
                 Pour exercer ce droit, vous pouvez nous contacter :
               </p>
               <ul className="list-disc list-inside text-gray-700 mb-6 space-y-2">
-                <li>Par email : contact@logodouman.com</li>
-                <li>Par courrier : LogoDouman, Abidjan, Plateau, Côte d'Ivoire</li>
+                <li>Par email : contact@mandemarket.com</li>
+                <li>Par courrier : MandeMarket, Abidjan, Plateau, Côte d'Ivoire</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-6">
                 Les données collectées sont destinées à la gestion de votre compte client, au traitement de vos commandes et à l'amélioration de nos services. Elles ne seront en aucun cas cédées à des tiers sans votre consentement préalable.
@@ -90,7 +90,7 @@ export default function MentionsLegalesPage() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">5. Cookies</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Le site LogoDouman utilise des cookies pour améliorer l'expérience utilisateur et réaliser des statistiques de visites. Un cookie est un fichier texte déposé sur votre ordinateur lors de la visite d'un site ou de la consultation d'une publicité.
+                Le site MandeMarket utilise des cookies pour améliorer l'expérience utilisateur et réaliser des statistiques de visites. Un cookie est un fichier texte déposé sur votre ordinateur lors de la visite d'un site ou de la consultation d'une publicité.
               </p>
               <p className="text-gray-700 leading-relaxed mb-6">
                 Vous pouvez désactiver les cookies dans les paramètres de votre navigateur. Toutefois, cela peut affecter certaines fonctionnalités du site.
@@ -98,15 +98,15 @@ export default function MentionsLegalesPage() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">6. Responsabilité</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                LogoDouman s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, LogoDouman ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition sur ce site.
+                MandeMarket s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, MandeMarket ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition sur ce site.
               </p>
               <p className="text-gray-700 leading-relaxed mb-6">
-                En conséquence, LogoDouman décline toute responsabilité pour toute imprécision, inexactitude ou omission portant sur des informations disponibles sur le site.
+                En conséquence, MandeMarket décline toute responsabilité pour toute imprécision, inexactitude ou omission portant sur des informations disponibles sur le site.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">7. Liens hypertextes</h2>
               <p className="text-gray-700 leading-relaxed mb-6">
-                Le site peut contenir des liens vers d'autres sites. LogoDouman n'exerce aucun contrôle sur ces sites et décline toute responsabilité quant à l'accès, au contenu ou à l'utilisation de ces sites, ainsi qu'aux dommages pouvant résulter de la consultation des informations présentes sur ces sites.
+                Le site peut contenir des liens vers d'autres sites. MandeMarket n'exerce aucun contrôle sur ces sites et décline toute responsabilité quant à l'accès, au contenu ou à l'utilisation de ces sites, ainsi qu'aux dommages pouvant résulter de la consultation des informations présentes sur ces sites.
               </p>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">8. Droit applicable</h2>
@@ -119,7 +119,7 @@ export default function MentionsLegalesPage() {
                 Pour toute question concernant ces mentions légales, vous pouvez nous contacter :
               </p>
               <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
-                <p className="text-gray-700 mb-1">📧 Email : contact@logodouman.com</p>
+                <p className="text-gray-700 mb-1">📧 Email : contact@mandemarket.com</p>
                 <p className="text-gray-700 mb-1">📞 Téléphone : +225 XX XX XX XX XX</p>
                 <p className="text-gray-700">📍 Adresse : Abidjan, Plateau, Côte d'Ivoire</p>
               </div>

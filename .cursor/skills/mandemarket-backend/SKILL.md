@@ -1,9 +1,9 @@
 ---
-name: logodouman-backend
-description: Développe le backend LogoDouman (Express, Prisma, Node.js). Routes API, logique métier, auth JWT, Cloudinary, Redis. Use when working on LogoDouman API, database schema, business logic, or backend services.
+name: mandemarket-backend
+description: Développe le backend MandeMarket (Express, Prisma, Node.js). Routes API, logique métier, auth JWT, Cloudinary, Redis. Use when working on MandeMarket API, database schema, business logic, or backend services.
 ---
 
-# LogoDouman - Agent Backend
+# MandeMarket - Agent Backend
 
 ## Stack
 
@@ -18,7 +18,7 @@ description: Développe le backend LogoDouman (Express, Prisma, Node.js). Routes
 ## Répertoires clés
 
 ```
-logodouman/backend/
+mandemarket/backend/
 ├── src/
 │   ├── app.js                 # Point d’entrée, montage `/api/*`
 │   ├── routes.*.js            # products, categories, auth, orders, …

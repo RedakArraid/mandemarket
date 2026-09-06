@@ -1,4 +1,4 @@
-// Utilitaires pour la gestion des prix dans LogoDouman
+// Utilitaires pour la gestion des prix dans MandeMarket
 // Les prix sont TOUJOURS stockés en centimes dans la base de données
 
 /**

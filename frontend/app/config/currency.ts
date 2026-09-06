@@ -1,4 +1,4 @@
-// Configuration de la devise pour LogoDouman
+// Configuration de la devise pour MandeMarket
 // Tous les prix sont en Francs CFA (XOF)
 
 export const CURRENCY_CONFIG = {

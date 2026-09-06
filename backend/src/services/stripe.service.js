@@ -31,8 +31,8 @@ async function createCheckoutSession({ orderId, amount, customer, successUrl, ca
       price_data: {
         currency: displayCurrency,
         product_data: {
-          name: `Commande LogoDouman #${orderId.substring(0, 8).toUpperCase()}`,
-          description: 'Commande sur LogoDouman.com',
+          name: `Commande MandeMarket #${orderId.substring(0, 8).toUpperCase()}`,
+          description: 'Commande sur MandeMarket.com',
         },
         unit_amount: unitAmount,
       },

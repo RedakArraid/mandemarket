@@ -84,7 +84,7 @@ export default function VendeurPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Devenez vendeur sur LogoDouman
+              Devenez vendeur sur MandeMarket
             </h1>
             <p className="text-xl text-gray-600">
               Vendez vos sacs et accessoires sur la plus grande marketplace de la région.

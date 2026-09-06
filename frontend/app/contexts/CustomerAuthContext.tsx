@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-const TOKEN_KEY = 'logodouman_customer_token';
+const TOKEN_KEY = 'mandemarket_customer_token';
 
 export interface Customer {
   id: string;

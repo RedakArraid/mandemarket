@@ -15,9 +15,9 @@ interface UsersManagerProps {
 }
 
 const SYSTEM_ACCOUNTS: UserAccount[] = [
-  { email: 'admin@logodouman.com', name: 'Administrateur', role: 'admin', type: 'Système' },
-  { email: 'manager@logodouman.com', name: 'Manager', role: 'manager', type: 'Système' },
-  { email: 'vendeur@logodouman.com', name: 'Vendeur (Boutique Aminata)', role: 'seller', type: 'Système' }
+  { email: 'admin@mandemarket.com', name: 'Administrateur', role: 'admin', type: 'Système' },
+  { email: 'manager@mandemarket.com', name: 'Manager', role: 'manager', type: 'Système' },
+  { email: 'vendeur@mandemarket.com', name: 'Vendeur (Boutique Aminata)', role: 'seller', type: 'Système' }
 ];
 
 const ROLE_BADGE: Record<string, string> = {

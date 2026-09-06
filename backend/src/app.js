@@ -33,9 +33,9 @@ const allowedOrigins = [
   'http://frontend:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'http://logodouman-frontend:3001',
-  'https://logodouman.genea.space',
-  'https://apilogodouman.genea.space',
+  'http://mandemarket-frontend:3001',
+  'https://mandemarket.soubadigital.com',
+  'https://apimandemarket.soubadigital.com',
 ];
 
 // Ajouter les origines depuis l'environnement
@@ -122,7 +122,7 @@ app.use('/api/shipping', shippingRoutes);
 // Routes de test
 app.get('/', (req, res) => {
   res.json({
-    message: '🚀 LogoDouman API est opérationnelle !',
+    message: '🚀 MandeMarket API est opérationnelle !',
     version: '2.0.0',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
@@ -167,7 +167,7 @@ app.get('/api/db-test', (req, res) => {
     message: 'Test de connexion base de données',
     database: {
       host: process.env.DB_HOST || 'postgres',
-      name: process.env.DB_NAME || 'logodouman',
+      name: process.env.DB_NAME || 'mandemarket',
       status: 'Simulé - OK'
     }
   });
@@ -193,7 +193,7 @@ app.use('*', (req, res) => {
 // Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-🚀 LogoDouman Backend v2.0 démarré !
+🚀 MandeMarket Backend v2.0 démarré !
 
 📊 Informations:
    Port: ${PORT}

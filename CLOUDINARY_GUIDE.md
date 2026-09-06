@@ -1,4 +1,4 @@
-# Cloudinary — LogoDouman
+# Cloudinary — MandeMarket
 
 Le backend charge et sert les images produits via **Cloudinary** (upload Multer + SDK). Sans clés valides, l’upload peut échouer ou rester limité selon la configuration.
 

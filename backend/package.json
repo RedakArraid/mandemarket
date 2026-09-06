@@ -1,7 +1,7 @@
 {
-  "name": "logodouman-backend",
+  "name": "mandemarket-backend",
   "version": "2.0.0",
-  "description": "Backend API pour LogoDouman - E-commerce complet",
+  "description": "Backend API pour MandeMarket - E-commerce complet",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
@@ -49,7 +49,7 @@
     "prisma",
     "postgresql"
   ],
-  "author": "LogoDouman Team",
+  "author": "MandeMarket Team",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"

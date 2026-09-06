@@ -126,7 +126,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     if (!isAuthenticated || !orderId) return;
     const fetchOrder = async () => {
-      const token = localStorage.getItem('logodouman_customer_token');
+      const token = localStorage.getItem('mandemarket_customer_token');
       try {
         const res = await fetch(`${API}/api/account/orders/${orderId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -179,7 +179,7 @@ export default function OrderDetailPage() {
     if (!returnReason.trim()) { setReturnError('Veuillez indiquer une raison.'); return; }
     setReturnLoading(true);
     setReturnError('');
-    const token = localStorage.getItem('logodouman_customer_token');
+    const token = localStorage.getItem('mandemarket_customer_token');
     try {
       const res = await fetch(`${API}/api/account/orders/${orderId}/return-request`, {
         method: 'POST',
@@ -207,7 +207,7 @@ export default function OrderDetailPage() {
     win.document.write(`<!DOCTYPE html><html><head><title>Facture #${order.id.substring(0,8).toUpperCase()}</title>
       <style>body{font-family:sans-serif;margin:40px;color:#111}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px;text-align:left}tfoot td{font-weight:bold}</style>
     </head><body>
-      <h1 style="color:#f97316">LogoDouman</h1>
+      <h1 style="color:#f97316">MandeMarket</h1>
       <p style="color:#666">Facture #${order.id.substring(0,8).toUpperCase()} · ${new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
       <hr/>
       <p><strong>Client :</strong> ${order.customer?.firstName || ''} ${order.customer?.lastName || ''}<br/>
@@ -216,7 +216,7 @@ export default function OrderDetailPage() {
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="3" style="padding:8px;text-align:right">Total</td><td style="padding:8px;text-align:right">${Math.round(order.totalAmount / 100).toLocaleString()} FCFA</td></tr></tfoot>
       </table>
-      <p style="margin-top:40px;color:#999;font-size:12px">Merci pour votre achat sur LogoDouman.</p>
+      <p style="margin-top:40px;color:#999;font-size:12px">Merci pour votre achat sur MandeMarket.</p>
       <script>window.print();</script>
     </body></html>`);
     win.document.close();

@@ -1,7 +1,7 @@
 {
-  "name": "logodouman",
+  "name": "mandemarket",
   "version": "2.1.0",
-  "description": "Plateforme e-commerce moderne et scalable - LogoDouman (Docker Ready)",
+  "description": "Plateforme e-commerce moderne et scalable - MandeMarket (Docker Ready)",
   "private": true,
   "scripts": {
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
@@ -30,7 +30,7 @@
     
     "docker:exec:backend": "docker compose exec backend sh",
     "docker:exec:frontend": "docker compose exec frontend sh",
-    "docker:exec:postgres": "docker compose exec postgres psql -U postgres -d logodouman",
+    "docker:exec:postgres": "docker compose exec postgres psql -U postgres -d mandemarket",
 
     "docker:health": "docker compose ps",
     "docker:migrate": "docker compose exec backend node scripts/migrate.js",
@@ -60,7 +60,7 @@
     "db:migrate": "docker compose exec backend node scripts/migrate.js",
     "db:reset": "docker compose down -v && docker compose up -d --build",
     "db:studio": "cd backend && npx prisma studio",
-    "db:backup": "docker compose exec postgres pg_dump -U postgres logodouman > backup_$(date +%Y%m%d_%H%M%S).sql",
+    "db:backup": "docker compose exec postgres pg_dump -U postgres mandemarket > backup_$(date +%Y%m%d_%H%M%S).sql",
     
     "clean": "rm -rf frontend/.next frontend/node_modules backend/node_modules node_modules",
     "fresh-install": "npm run clean && npm run install:all",
@@ -68,8 +68,8 @@
     "type-check": "cd frontend && npm run type-check",
     "format": "cd frontend && npx prettier --write . && cd ../backend && npx prettier --write .",
     
-    "monitor": "docker stats logodouman-frontend logodouman-backend logodouman-postgres logodouman-redis",
-    "backup:volumes": "docker run --rm -v logodouman_postgres_data:/data -v $(pwd):/backup alpine tar czf /backup/postgres_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /data ."
+    "monitor": "docker stats mandemarket-frontend mandemarket-backend mandemarket-postgres mandemarket-redis",
+    "backup:volumes": "docker run --rm -v mandemarket_postgres_data:/data -v $(pwd):/backup alpine tar czf /backup/postgres_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /data ."
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -88,13 +88,13 @@
     "docker-compose",
     "tailwindcss",
     "sacs",
-    "logodouman",
+    "mandemarket",
     "cote-divoire"
   ],
   "author": {
-    "name": "LogoDouman Team",
-    "email": "dev@logodouman.com",
-    "url": "https://logodouman.com"
+    "name": "MandeMarket Team",
+    "email": "dev@mandemarket.com",
+    "url": "https://mandemarket.com"
   },
   "license": "MIT",
   "engines": {

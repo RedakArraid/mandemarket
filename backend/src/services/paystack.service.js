@@ -24,7 +24,7 @@ function normalizePhone(phone) {
   return digits;
 }
 
-// Mapper les opérateurs logodouman → slug Paystack mobile money
+// Mapper les opérateurs mandemarket → slug Paystack mobile money
 const OPERATOR_SLUG = {
   'mtn_momo':     'mtn',
   'orange_money': 'airtel', // Orange CI utilise le canal Airtel sur Paystack
@@ -52,7 +52,7 @@ async function initializeTransaction({ orderId, amount, email, callbackUrl, mobi
     currency: 'XOF',
     reference,
     callback_url: callbackUrl,
-    metadata: { orderId, source: 'logodouman', operator: operatorGateway ?? 'paystack' },
+    metadata: { orderId, source: 'mandemarket', operator: operatorGateway ?? 'paystack' },
     channels: providerSlug ? ['mobile_money'] : ['mobile_money', 'card', 'bank'],
   };
 

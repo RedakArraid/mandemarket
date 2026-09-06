@@ -1,4 +1,4 @@
-# Boutique moderne — LogoDouman
+# Boutique moderne — MandeMarket
 
 > **Contexte** : ce document décrit l’expérience **catalogue** (`/boutique` — filtres, tri, UI). Pour l’architecture du monorepo, les commandes Docker et les API, voir [README.md](./README.md) et [ANALYSE_PROJET.md](./ANALYSE_PROJET.md).
 
@@ -6,7 +6,7 @@
 
 ## 🎉 Nouvelle expérience de shopping !
 
-La boutique LogoDouman a été complètement repensée avec une **interface moderne et élégante** pour offrir la meilleure expérience d'achat.
+La boutique MandeMarket a été complètement repensée avec une **interface moderne et élégante** pour offrir la meilleure expérience d'achat.
 
 ---
 
@@ -313,8 +313,8 @@ Extraits automatiquement depuis `product.material`
 ## 🌐 URLs
 
 ### Production
-- **Boutique** : https://logodouman.genea.space/boutique
-- **Accueil** : https://logodouman.genea.space
+- **Boutique** : https://mandemarket.soubadigital.com/boutique
+- **Accueil** : https://mandemarket.soubadigital.com
 
 ### Local (développement)
 - **Boutique** : http://localhost:3000/boutique
@@ -598,13 +598,13 @@ const [sortBy, setSortBy] = useState('newest');
 - [x] Badge "Nouveau" automatique
 - [x] Overlay hover
 - [x] Responsive complet
-- [ ] **Test utilisateur** sur https://logodouman.genea.space/boutique
+- [ ] **Test utilisateur** sur https://mandemarket.soubadigital.com/boutique
 
 ---
 
 ## 🎉 Résultat
 
-Votre boutique LogoDouman offre maintenant une **expérience de shopping moderne et professionnelle** avec :
+Votre boutique MandeMarket offre maintenant une **expérience de shopping moderne et professionnelle** avec :
 
 - ✅ **Design élégant** (gradients, animations, shadows)
 - ✅ **Filtres puissants** (7 critères combinables)
@@ -614,11 +614,11 @@ Votre boutique LogoDouman offre maintenant une **expérience de shopping moderne
 - ✅ **UX soignée** (feedbacks visuels, animations fluides)
 
 **Testez maintenant :**  
-👉 https://logodouman.genea.space/boutique
+👉 https://mandemarket.soubadigital.com/boutique
 
 ---
 
 **Date** : 20 Octobre 2025  
-**Version** : LogoDouman 2.1.0  
+**Version** : MandeMarket 2.1.0  
 **Statut** : ✅ Déployé en production
 

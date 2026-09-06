@@ -9,8 +9,8 @@ const nextConfig = {
       'images.unsplash.com', 
       'localhost', 
       '127.0.0.1', 
-      'apilogodouman.genea.space', 
-      'logodouman-backend',
+      'apimandemarket.soubadigital.com',
+      'mandemarket-backend',
       'res.cloudinary.com' // Cloudinary CDN
     ],
     remotePatterns: [
@@ -28,13 +28,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'apilogodouman.genea.space',
+        hostname: 'apimandemarket.soubadigital.com',
         port: '',
         pathname: '/uploads/**',
       },
       {
         protocol: 'http',
-        hostname: 'logodouman-backend',
+        hostname: 'mandemarket-backend',
         port: '4002',
         pathname: '/uploads/**',
       },
@@ -145,7 +145,7 @@ const nextConfig = {
   
   // 🌍 Variables d'environnement publiques
   env: {
-    CUSTOM_KEY: 'logodouman',
+    CUSTOM_KEY: 'mandemarket',
     DOCKER_ENV: process.env.DOCKER_ENV || 'true',
   },
   

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductClient from './ProductClient';
 
 const API      = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://logodouman.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
 
 async function getProduct(id: string) {
   try {
@@ -38,7 +38,7 @@ export async function generateMetadata(
   { params }: { params: { id: string } }
 ): Promise<Metadata> {
   const product = await getProduct(params.id);
-  if (!product) return { title: 'Produit introuvable | LogoDouman' };
+  if (!product) return { title: 'Produit introuvable | MandeMarket' };
 
   const title       = product.name;
   const description = product.description?.slice(0, 160) ?? '';
@@ -53,7 +53,7 @@ export async function generateMetadata(
       title,
       description,
       url,
-      siteName:        'LogoDouman',
+      siteName:        'MandeMarket',
       locale:          'fr_CI',
       alternateLocale: ['fr_FR', 'fr_SN', 'en_GH'],
       type:            'website',

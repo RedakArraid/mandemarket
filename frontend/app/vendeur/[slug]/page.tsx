@@ -23,12 +23,12 @@ export default function VendeurProfilPage() {
       .then(data => {
         setSeller(data);
         if (data?.storeName) {
-          document.title = `${data.storeName} | LogoDouman`;
+          document.title = `${data.storeName} | MandeMarket`;
         }
       })
       .catch(() => setSeller(null))
       .finally(() => setLoading(false));
-    return () => { document.title = 'LogoDouman'; };
+    return () => { document.title = 'MandeMarket'; };
   }, [slug]);
 
   if (loading) {

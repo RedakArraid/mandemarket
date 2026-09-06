@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://logodouman.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
 
 type Props = { params: { id: string } };
 
@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: {
-      default: 'Produit | LogoDouman',
-      template: '%s | LogoDouman',
+      default: 'Produit | MandeMarket',
+      template: '%s | MandeMarket',
     },
     alternates: {
       canonical: url,
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url,
       locale:          'fr_CI',
       alternateLocale: ['fr_FR', 'fr_SN', 'en_GH', 'en_GB'],
-      siteName:        'LogoDouman',
+      siteName:        'MandeMarket',
       type:            'website',
     },
     twitter: { card: 'summary_large_image' },

@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-const COUNTRY_KEY = 'logodouman_country';
-const LANG_KEY    = 'logodouman_lang';
+const COUNTRY_KEY = 'mandemarket_country';
+const LANG_KEY    = 'mandemarket_lang';
 
 export type Lang = 'fr' | 'en';
 

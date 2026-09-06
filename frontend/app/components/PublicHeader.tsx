@@ -73,7 +73,7 @@ export default function PublicHeader() {
           {/* Logo + contrôles région/langue */}
           <div className="flex items-center gap-2">
             <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 bg-clip-text text-transparent hover:from-orange-500 hover:to-orange-700 transition-all duration-300">
-              LogoDouman
+              MandeMarket
             </Link>
 
             {/* Sélecteur de pays */}

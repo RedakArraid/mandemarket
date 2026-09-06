@@ -1,4 +1,4 @@
-// Configuration API centralisée pour LogoDouman
+// Configuration API centralisée pour MandeMarket
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
 
 export const apiConfig = {

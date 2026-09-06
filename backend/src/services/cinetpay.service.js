@@ -14,7 +14,7 @@ async function initiatePayment({ orderId, amount, customer, returnUrl, notifyUrl
     transaction_id: orderId,
     amount: amountFCFA,
     currency: 'XOF',
-    description: `Commande LogoDouman #${orderId.substring(0, 8).toUpperCase()}`,
+    description: `Commande MandeMarket #${orderId.substring(0, 8).toUpperCase()}`,
     return_url: returnUrl,
     notify_url: notifyUrl,
     lang: 'fr',

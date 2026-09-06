@@ -1,6 +1,6 @@
-# Agents LogoDouman
+# Agents MandeMarket
 
-Organisation des agents pour le développement de la marketplace LogoDouman.
+Organisation des agents pour le développement de la marketplace MandeMarket.
 
 ## Architecture
 
@@ -23,17 +23,17 @@ Organisation des agents pour le développement de la marketplace LogoDouman.
 
 | Agent | Skill | Code | Périmètre |
 |-------|-------|------|-----------|
-| **Manager** | logodouman-manager | Non | Coordination, priorisation, validation |
-| **Frontend** | logodouman-frontend | Oui | Pages, composants, contextes, UI |
-| **Backend** | logodouman-backend | Oui | API, Prisma, auth, logique métier |
-| **Infra** | logodouman-infra | Oui | Docker, Traefik, volumes, déploiement |
+| **Manager** | mandemarket-manager | Non | Coordination, priorisation, validation |
+| **Frontend** | mandemarket-frontend | Oui | Pages, composants, contextes, UI |
+| **Backend** | mandemarket-backend | Oui | API, Prisma, auth, logique métier |
+| **Infra** | mandemarket-infra | Oui | Docker, Traefik, volumes, déploiement |
 
 Les définitions détaillées des skills sont dans :
 
-- `.cursor/skills/logodouman-manager/SKILL.md`
-- `.cursor/skills/logodouman-frontend/SKILL.md`
-- `.cursor/skills/logodouman-backend/SKILL.md`
-- `.cursor/skills/logodouman-infra/SKILL.md`
+- `.cursor/skills/mandemarket-manager/SKILL.md`
+- `.cursor/skills/mandemarket-frontend/SKILL.md`
+- `.cursor/skills/mandemarket-backend/SKILL.md`
+- `.cursor/skills/mandemarket-infra/SKILL.md`
 
 ## Documentation produit / technique
 

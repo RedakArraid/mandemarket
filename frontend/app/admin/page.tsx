@@ -24,7 +24,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-orange-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">LogoDouman Admin</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">MandeMarket Admin</h2>
         <p className="text-gray-600">Redirection vers l'interface CRUD...</p>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# LogoDouman
+# MandeMarket
 
 Marketplace e-commerce **full-stack** : catalogue multi-vendeurs, panier, checkout, paiements (selon configuration), espace client, administration et espace vendeur.  
 **Frontend** : Next.js 14 (App Router), TypeScript, Tailwind. **Backend** : Express, Prisma, PostgreSQL, Redis. **Images** : Cloudinary.
@@ -23,8 +23,8 @@ Comptes de test (seed) : voir [CREDENTIALS.md](./CREDENTIALS.md).
 ## Installation
 
 ```bash
-git clone https://github.com/RedakArraid/logodouman.git
-cd logodouman
+git clone https://github.com/RedakArraid/mandemarket.git
+cd mandemarket
 npm run install:all
 ```
 
@@ -77,7 +77,7 @@ npm run dev
 ## Structure du dépôt
 
 ```
-logodouman/
+mandemarket/
 ├── frontend/          # Next.js 14 — app/, composants, contextes
 ├── backend/           # Express — src/routes.*.js, Prisma, scripts/
 ├── docker-compose.yml # Stack locale (postgres, redis, backend, frontend, adminer)
@@ -114,8 +114,8 @@ npm run build         # build frontend + backend (selon scripts package)
 
 ## Déploiement production
 
-Variables et Traefik : voir `.cursor/skills/logodouman-infra/SKILL.md` et `docker-compose.prod.yml`. Ne pas committer `.env.production`.
+Variables et Traefik : voir `.cursor/skills/mandemarket-infra/SKILL.md` et `docker-compose.prod.yml`. Ne pas committer `.env.production`.
 
 ---
 
-**LogoDouman** — documentation revue **1ᵉʳ mai 2026**.
+**MandeMarket** — documentation revue **1ᵉʳ mai 2026**.

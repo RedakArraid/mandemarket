@@ -13,7 +13,7 @@ const createTransporter = () => {
   });
 };
 
-const FROM = process.env.EMAIL_FROM || 'LogoDouman <noreply@logodouman.com>';
+const FROM = process.env.EMAIL_FROM || 'MandeMarket <noreply@mandemarket.com>';
 
 async function sendEmail({ to, subject, html }) {
   if (!isConfigured()) {
@@ -50,9 +50,9 @@ const baseTemplate = (content) => `
   .footer { background: #f3f4f6; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
 </style></head><body>
 <div class="container">
-  <div class="header"><h1>LogoDouman</h1><p>Votre marketplace de confiance</p></div>
+  <div class="header"><h1>MandeMarket</h1><p>Votre marketplace de confiance</p></div>
   <div class="body">${content}</div>
-  <div class="footer">© ${new Date().getFullYear()} LogoDouman - Côte d'Ivoire<br>
+  <div class="footer">© ${new Date().getFullYear()} MandeMarket - Côte d'Ivoire<br>
   Vous recevez cet email car vous avez effectué une action sur notre plateforme.</div>
 </div></body></html>`;
 
@@ -93,11 +93,11 @@ async function sendOrderConfirmation(customer, order) {
 
     <p style="margin-top: 24px; color: #6b7280; font-size: 14px;">
       Livraison estimée sous <strong>48h à 72h</strong> à Abidjan.<br>
-      Pour toute question: <a href="mailto:contact@logodouman.com" style="color: #f97316;">contact@logodouman.com</a>
+      Pour toute question: <a href="mailto:contact@mandemarket.com" style="color: #f97316;">contact@mandemarket.com</a>
     </p>
   `);
 
-  await sendEmail({ to: customer.email, subject: `Commande #${order.id.substring(0, 8).toUpperCase()} confirmée - LogoDouman`, html });
+  await sendEmail({ to: customer.email, subject: `Commande #${order.id.substring(0, 8).toUpperCase()} confirmée - MandeMarket`, html });
 }
 
 // Email: Mise à jour statut commande
@@ -135,7 +135,7 @@ async function sendOrderStatusUpdate(customer, order, newStatus) {
 // Email: Bienvenue nouveau client
 async function sendWelcomeEmail(customer) {
   const html = baseTemplate(`
-    <h2 style="color: #111827;">Bienvenue sur LogoDouman ! 🎉</h2>
+    <h2 style="color: #111827;">Bienvenue sur MandeMarket ! 🎉</h2>
     <p>Bonjour <strong>${customer.firstName}</strong>,</p>
     <p>Votre compte a été créé avec succès. Vous pouvez maintenant :</p>
     <ul style="color: #374151; line-height: 2;">
@@ -149,7 +149,7 @@ async function sendWelcomeEmail(customer) {
       </a>
     </div>
   `);
-  await sendEmail({ to: customer.email, subject: 'Bienvenue sur LogoDouman !', html });
+  await sendEmail({ to: customer.email, subject: 'Bienvenue sur MandeMarket !', html });
 }
 
 // Email: Approbation vendeur
@@ -157,7 +157,7 @@ async function sendSellerApproval(sellerEmail, sellerName, storeName) {
   const html = baseTemplate(`
     <h2 style="color: #111827;">Votre boutique est approuvée ! 🎊</h2>
     <p>Bonjour <strong>${sellerName}</strong>,</p>
-    <p>Félicitations ! Votre boutique <strong>${storeName}</strong> a été approuvée sur LogoDouman.</p>
+    <p>Félicitations ! Votre boutique <strong>${storeName}</strong> a été approuvée sur MandeMarket.</p>
     <p>Vous pouvez maintenant :</p>
     <ul style="color: #374151; line-height: 2;">
       <li>Ajouter vos produits depuis votre tableau de bord vendeur</li>
@@ -175,7 +175,7 @@ async function sendSellerApproval(sellerEmail, sellerName, storeName) {
 
 // Email: Nouvelle commande (notification admin)
 async function sendNewOrderNotification(order, customer) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SEED_ADMIN_EMAIL || 'admin@logodouman.com';
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SEED_ADMIN_EMAIL || 'admin@mandemarket.com';
   const html = baseTemplate(`
     <h2 style="color: #111827;">Nouvelle commande reçue</h2>
     <p>Commande <strong>#${order.id.substring(0, 8).toUpperCase()}</strong></p>

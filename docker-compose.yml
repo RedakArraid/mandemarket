@@ -1,5 +1,5 @@
 # =============================================================================
-# DOCKER COMPOSE - LogoDouman LOCAL
+# DOCKER COMPOSE - MandeMarket LOCAL
 # =============================================================================
 # Configuration locale sans Traefik ni volumes externes
 # Utilisation:
@@ -18,11 +18,11 @@ services:
   # ===========================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: logodouman-postgres
+    container_name: mandemarket-postgres
     environment:
-      POSTGRES_DB: logodouman
+      POSTGRES_DB: mandemarket
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: logodouman123
+      POSTGRES_PASSWORD: mandemarket123
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
       - "5433:5432"
@@ -31,20 +31,20 @@ services:
       - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d logodouman"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mandemarket"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     networks:
-      - logodouman_network
+      - mandemarket_network
 
   # ===========================================================================
   # Redis 7
   # ===========================================================================
   redis:
     image: redis:7-alpine
-    container_name: logodouman-redis
+    container_name: mandemarket-redis
     command: redis-server --requirepass redis123 --appendonly yes
     ports:
       - "6380:6379"
@@ -58,7 +58,7 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - logodouman_network
+      - mandemarket_network
 
   # ===========================================================================
   # Backend Express.js + Prisma
@@ -67,7 +67,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: logodouman-backend
+    container_name: mandemarket-backend
     env_file:
       - ./backend/.env.docker
     ports:
@@ -88,7 +88,7 @@ services:
       retries: 5
       start_period: 90s
     networks:
-      - logodouman_network
+      - mandemarket_network
 
   # ===========================================================================
   # Frontend Next.js 14
@@ -97,7 +97,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: logodouman-frontend
+    container_name: mandemarket-frontend
     env_file:
       - ./frontend/.env.docker
     ports:
@@ -113,14 +113,14 @@ services:
       retries: 3
       start_period: 60s
     networks:
-      - logodouman_network
+      - mandemarket_network
 
   # ===========================================================================
   # Adminer - Interface web pour PostgreSQL
   # ===========================================================================
   adminer:
     image: adminer:latest
-    container_name: logodouman-adminer
+    container_name: mandemarket-adminer
     ports:
       - "8080:8080"
     depends_on:
@@ -128,13 +128,13 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - logodouman_network
+      - mandemarket_network
 
 # =============================================================================
 # Networks
 # =============================================================================
 networks:
-  logodouman_network:
+  mandemarket_network:
     driver: bridge
 
 # =============================================================================

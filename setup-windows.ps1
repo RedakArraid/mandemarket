@@ -1,8 +1,8 @@
-# 🚀 Script d'installation automatique Windows pour LogoDouman
+# 🚀 Script d'installation automatique Windows pour MandeMarket
 # Exécuter en tant qu'administrateur
 
 Write-Host "🐳 ======================================" -ForegroundColor Cyan
-Write-Host "🚀 Installation automatique LogoDouman" -ForegroundColor Cyan
+Write-Host "🚀 Installation automatique MandeMarket" -ForegroundColor Cyan
 Write-Host "🐳 ======================================" -ForegroundColor Cyan
 
 # 🔍 Vérifier si on est administrateur
@@ -112,8 +112,8 @@ function Configure-DockerDesktop {
 }
 
 # 🔧 Fonction pour démarrer le projet
-function Start-LogoDouman {
-    Write-Host "🚀 Démarrage de LogoDouman..." -ForegroundColor Blue
+function Start-MandeMarket {
+    Write-Host "🚀 Démarrage de MandeMarket..." -ForegroundColor Blue
     
     # Vérifier que Docker fonctionne
     if (!(Test-Docker)) {
@@ -132,7 +132,7 @@ function Start-LogoDouman {
     Write-Host "   🔍 Vérification de l'état..." -ForegroundColor Gray
     docker-compose ps
     
-    Write-Host "✅ LogoDouman démarré avec succès !" -ForegroundColor Green
+    Write-Host "✅ MandeMarket démarré avec succès !" -ForegroundColor Green
     Write-Host "🌐 URLs d'accès :" -ForegroundColor Cyan
     Write-Host "   Frontend: http://localhost:3000" -ForegroundColor White
     Write-Host "   Backend: http://localhost:4002" -ForegroundColor White
@@ -177,7 +177,7 @@ if (!$dockerWorking) {
 
 # Démarrer le projet
 Write-Host "🚀 Tout est prêt, démarrage du projet..." -ForegroundColor Green
-Start-LogoDouman
+Start-MandeMarket
 
 Write-Host "🐳 ======================================" -ForegroundColor Cyan
 Write-Host "✅ Installation terminée !" -ForegroundColor Green

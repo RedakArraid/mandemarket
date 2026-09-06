@@ -44,11 +44,11 @@ const blogPosts = [
   },
   {
     id: 4,
-    title: "L'histoire de LogoDouman : Une passion ivoirienne",
+    title: "L'histoire de MandeMarket : Une passion ivoirienne",
     excerpt: "Découvrez l'histoire de notre marque et notre engagement envers la qualité et l'excellence en Côte d'Ivoire.",
     image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop",
     category: "À propos",
-    author: "Direction LogoDouman",
+    author: "Direction MandeMarket",
     date: "1 Oct 2024",
     readTime: "4 min"
   }

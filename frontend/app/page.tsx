@@ -23,7 +23,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">LogoDouman</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">MandeMarket</h2>
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
@@ -279,7 +279,7 @@ export default function HomePage() {
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-white grid md:grid-cols-2 gap-8 items-center">
             <div>
               <span className="text-orange-400 font-bold text-sm uppercase tracking-widest mb-3 block">Pour les entrepreneurs</span>
-              <h2 className="text-4xl font-bold mb-4">Vendez sur LogoDouman</h2>
+              <h2 className="text-4xl font-bold mb-4">Vendez sur MandeMarket</h2>
               <p className="text-gray-300 text-lg mb-6">
                 Rejoignez notre réseau de vendeurs certifiés. Créez votre boutique en ligne, touchez des milliers de clients en Côte d'Ivoire et en France.
               </p>
@@ -317,7 +317,7 @@ export default function HomePage() {
       <section className="py-20 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Rejoignez LogoDouman aujourd'hui
+            Rejoignez MandeMarket aujourd'hui
           </h2>
           <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
             Des milliers de vendeurs, des millions de produits. Afrique de l'Ouest et Europe.

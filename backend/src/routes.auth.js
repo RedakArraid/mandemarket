@@ -6,7 +6,7 @@ const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const db = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'logodouman-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'mandemarket-secret-key-change-in-production';
 
 // Zod schemas
 const signupSchema = z.object({

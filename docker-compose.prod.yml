@@ -1,35 +1,35 @@
 # =============================================================================
-# DOCKER COMPOSE - LogoDouman PRODUCTION
+# DOCKER COMPOSE - MandeMarket PRODUCTION
 # =============================================================================
 # Configuration indépendante pour l'environnement de production
 # Utilisation: 
-#   - Démarrer: docker compose -f docker-compose.prod.yml --project-name logodouman-prod --env-file .env.production up -d
-#   - Arrêter: docker compose -f docker-compose.prod.yml --project-name logodouman-prod down
-#   - Logs: docker compose -f docker-compose.prod.yml --project-name logodouman-prod logs -f
-#   - Rebuild: docker compose -f docker-compose.prod.yml --project-name logodouman-prod up -d --build
+#   - Démarrer: docker compose -f docker-compose.prod.yml --project-name mandemarket-prod --env-file .env.production up -d
+#   - Arrêter: docker compose -f docker-compose.prod.yml --project-name mandemarket-prod down
+#   - Logs: docker compose -f docker-compose.prod.yml --project-name mandemarket-prod logs -f
+#   - Rebuild: docker compose -f docker-compose.prod.yml --project-name mandemarket-prod up -d --build
 # =============================================================================
 
 services:
   # ===========================================================================
-  # LogoDouman Backend
+  # MandeMarket Backend
   # ===========================================================================
-  logodouman-backend:
+  mandemarket-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: logodouman-backend
+    container_name: mandemarket-backend
     env_file:
       - .env.production
     environment:
       - NODE_ENV=production
       - PORT=4002
       - HOST=0.0.0.0
-      - DATABASE_URL=postgresql://${LOGODOUMAN_DB_USER}:${LOGODOUMAN_DB_PASSWORD}@logodouman-db:5432/${LOGODOUMAN_DB_NAME}
-      - REDIS_URL=redis://:${LOGODOUMAN_REDIS_PASSWORD}@logodouman-redis:6379
-      - REDIS_PASSWORD=${LOGODOUMAN_REDIS_PASSWORD}
-      - JWT_SECRET=${LOGODOUMAN_JWT_SECRET}
+      - DATABASE_URL=postgresql://${MANDEMARKET_DB_USER}:${MANDEMARKET_DB_PASSWORD}@mandemarket-db:5432/${MANDEMARKET_DB_NAME}
+      - REDIS_URL=redis://:${MANDEMARKET_REDIS_PASSWORD}@mandemarket-redis:6379
+      - REDIS_PASSWORD=${MANDEMARKET_REDIS_PASSWORD}
+      - JWT_SECRET=${MANDEMARKET_JWT_SECRET}
       - BCRYPT_ROUNDS=${BCRYPT_ROUNDS:-12}
-      - CORS_ORIGIN=${LOGODOUMAN_CORS_ORIGIN}
+      - CORS_ORIGIN=${MANDEMARKET_CORS_ORIGIN}
       - UPLOAD_DIR=/app/uploads
       - MAX_FILE_SIZE=${MAX_FILE_SIZE:-5242880}
       - LOG_LEVEL=${LOG_LEVEL:-info}
@@ -40,12 +40,12 @@ services:
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
     volumes:
-      - logodouman_backend_uploads:/app/uploads
-      - logodouman_backend_logs:/app/logs
+      - mandemarket_backend_uploads:/app/uploads
+      - mandemarket_backend_logs:/app/logs
     depends_on:
-      logodouman-db:
+      mandemarket-db:
         condition: service_healthy
-      logodouman-redis:
+      mandemarket-redis:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -56,40 +56,40 @@ services:
       start_period: 90s
     networks:
       - traefik_network
-      - logodouman_internal
+      - mandemarket_internal
     labels:
       - traefik.enable=true
-      - traefik.http.routers.logodouman-api.rule=Host(`apilogodouman.genea.space`)
-      - traefik.http.routers.logodouman-api.entrypoints=websecure
-      - traefik.http.routers.logodouman-api.tls=true
-      - traefik.http.routers.logodouman-api.tls.certresolver=mytlschallenge
-      - traefik.http.services.logodouman-api.loadbalancer.server.port=4002
+      - traefik.http.routers.mandemarket-api.rule=Host(`apimandemarket.soubadigital.com`)
+      - traefik.http.routers.mandemarket-api.entrypoints=websecure
+      - traefik.http.routers.mandemarket-api.tls=true
+      - traefik.http.routers.mandemarket-api.tls.certresolver=mytlschallenge
+      - traefik.http.services.mandemarket-api.loadbalancer.server.port=4002
 
   # ===========================================================================
-  # LogoDouman Frontend
+  # MandeMarket Frontend
   # ===========================================================================
-  logodouman-frontend:
+  mandemarket-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
         NODE_ENV: production
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://apilogodouman.genea.space}
-    container_name: logodouman-frontend
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://apimandemarket.soubadigital.com}
+    container_name: mandemarket-frontend
     env_file:
       - .env.production
     environment:
       - NODE_ENV=production
       - PORT=3001
       - HOSTNAME=0.0.0.0
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://apilogodouman.genea.space}
-      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://logodouman.genea.space}
-      - INTERNAL_API_URL=http://logodouman-backend:4002
-      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-LogoDouman}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://apimandemarket.soubadigital.com}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://mandemarket.soubadigital.com}
+      - INTERNAL_API_URL=http://mandemarket-backend:4002
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-MandeMarket}
       - NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION:-2.1.0}
       - NEXT_TELEMETRY_DISABLED=1
     depends_on:
-      logodouman-backend:
+      mandemarket-backend:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -102,58 +102,58 @@ services:
       - traefik_network
     labels:
       - traefik.enable=true
-      - traefik.http.routers.logodouman-frontend.rule=Host(`logodouman.genea.space`)
-      - traefik.http.routers.logodouman-frontend.entrypoints=websecure
-      - traefik.http.routers.logodouman-frontend.tls=true
-      - traefik.http.routers.logodouman-frontend.tls.certresolver=mytlschallenge
-      - traefik.http.services.logodouman-frontend.loadbalancer.server.port=3001
+      - traefik.http.routers.mandemarket-frontend.rule=Host(`mandemarket.soubadigital.com`)
+      - traefik.http.routers.mandemarket-frontend.entrypoints=websecure
+      - traefik.http.routers.mandemarket-frontend.tls=true
+      - traefik.http.routers.mandemarket-frontend.tls.certresolver=mytlschallenge
+      - traefik.http.services.mandemarket-frontend.loadbalancer.server.port=3001
 
   # ===========================================================================
-  # LogoDouman Database (PostgreSQL)
+  # MandeMarket Database (PostgreSQL)
   # ===========================================================================
-  logodouman-db:
+  mandemarket-db:
     image: postgres:16-alpine
-    container_name: logodouman-db
+    container_name: mandemarket-db
     env_file:
       - .env.production
     environment:
-      - POSTGRES_DB=${LOGODOUMAN_DB_NAME:-logodouman}
-      - POSTGRES_USER=${LOGODOUMAN_DB_USER}
-      - POSTGRES_PASSWORD=${LOGODOUMAN_DB_PASSWORD}
+      - POSTGRES_DB=${MANDEMARKET_DB_NAME:-mandemarket}
+      - POSTGRES_USER=${MANDEMARKET_DB_USER}
+      - POSTGRES_PASSWORD=${MANDEMARKET_DB_PASSWORD}
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C
     volumes:
-      - logodouman_postgres_data:/var/lib/postgresql/data
+      - mandemarket_postgres_data:/var/lib/postgresql/data
       - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LOGODOUMAN_DB_USER:-postgres} -d ${LOGODOUMAN_DB_NAME:-logodouman}"]
+      test: ["CMD-SHELL", "pg_isready -U ${MANDEMARKET_DB_USER:-postgres} -d ${MANDEMARKET_DB_NAME:-mandemarket}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     networks:
-      - logodouman_internal
+      - mandemarket_internal
 
   # ===========================================================================
-  # LogoDouman Redis
+  # MandeMarket Redis
   # ===========================================================================
-  logodouman-redis:
+  mandemarket-redis:
     image: redis:7-alpine
-    container_name: logodouman-redis
+    container_name: mandemarket-redis
     env_file:
       - .env.production
-    command: redis-server --requirepass ${LOGODOUMAN_REDIS_PASSWORD} --appendonly yes
+    command: redis-server --requirepass ${MANDEMARKET_REDIS_PASSWORD} --appendonly yes
     volumes:
-      - logodouman_redis_data:/data
+      - mandemarket_redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${LOGODOUMAN_REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${MANDEMARKET_REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 10s
     networks:
-      - logodouman_internal
+      - mandemarket_internal
 
 # =============================================================================
 # Networks
@@ -163,7 +163,7 @@ networks:
   traefik_network:
     external: true
   # Réseau interne isolé pour la base de données et Redis
-  logodouman_internal:
+  mandemarket_internal:
     internal: true
     driver: bridge
 
@@ -171,16 +171,16 @@ networks:
 # Volumes
 # =============================================================================
 volumes:
-  logodouman_postgres_data:
-    name: root_logodouman_postgres_data
+  mandemarket_postgres_data:
+    name: root_mandemarket_postgres_data
     external: true
-  logodouman_redis_data:
-    name: root_logodouman_redis_data
+  mandemarket_redis_data:
+    name: root_mandemarket_redis_data
     external: true
-  logodouman_backend_uploads:
-    name: root_logodouman_backend_uploads
+  mandemarket_backend_uploads:
+    name: root_mandemarket_backend_uploads
     external: true
-  logodouman_backend_logs:
-    name: root_logodouman_backend_logs
+  mandemarket_backend_logs:
+    name: root_mandemarket_backend_logs
     external: true
 

@@ -13,7 +13,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'logodouman', // Dossier dans Cloudinary
+    folder: 'mandemarket', // Dossier dans Cloudinary
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
     transformation: [
       { width: 800, height: 800, crop: 'limit' }, // Limite la taille
@@ -89,7 +89,7 @@ function extractPublicId(url) {
   // Format alternatif
   const matches2 = url.match(/\/([^\/]+)\.\w+$/);
   if (matches2 && matches2[1]) {
-    return `logodouman/${matches2[1]}`;
+    return `mandemarket/${matches2[1]}`;
   }
   
   return null;

@@ -89,8 +89,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900 mb-1">Email</h3>
-                      <a href="mailto:contact@logodouman.com" className="text-orange-600 hover:text-orange-700 font-semibold">
-                        contact@logodouman.com
+                      <a href="mailto:contact@mandemarket.com" className="text-orange-600 hover:text-orange-700 font-semibold">
+                        contact@mandemarket.com
                       </a>
                     </div>
                   </div>

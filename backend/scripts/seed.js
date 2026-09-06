@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Démarrage du seed de la base de données LogoDouman...\n');
+  console.log('🌱 Démarrage du seed de la base de données MandeMarket...\n');
 
   // ===== CATÉGORIES =====
   console.log('📁 Création des catégories...');
@@ -292,7 +292,7 @@ async function main() {
   // ===== UTILISATEUR ADMIN =====
   console.log('\n👤 Création de l\'utilisateur admin...');
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@logodouman.com';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@mandemarket.com';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin@2024!';
   const adminHash = await bcrypt.hash(adminPassword, 12);
 
@@ -302,7 +302,7 @@ async function main() {
     create: {
       email: adminEmail,
       password: adminHash,
-      name: 'Administrateur LogoDouman',
+      name: 'Administrateur MandeMarket',
       role: 'admin'
     }
   });
@@ -313,12 +313,12 @@ async function main() {
 
   const managerHash = await bcrypt.hash('Manager@2024!', 12);
   const managerUser = await db.user.upsert({
-    where: { email: 'manager@logodouman.com' },
+    where: { email: 'manager@mandemarket.com' },
     update: {},
     create: {
-      email: 'manager@logodouman.com',
+      email: 'manager@mandemarket.com',
       password: managerHash,
-      name: 'Manager LogoDouman',
+      name: 'Manager MandeMarket',
       role: 'user'
     }
   });
@@ -329,10 +329,10 @@ async function main() {
 
   const sellerHash = await bcrypt.hash('Vendeur@2024!', 12);
   const sellerUser = await db.user.upsert({
-    where: { email: 'vendeur@logodouman.com' },
+    where: { email: 'vendeur@mandemarket.com' },
     update: {},
     create: {
-      email: 'vendeur@logodouman.com',
+      email: 'vendeur@mandemarket.com',
       password: sellerHash,
       name: 'Aminata Koné',
       role: 'seller'
@@ -528,7 +528,7 @@ async function main() {
   // ===== CLIENT AFRIQUE (CI) =====
   console.log('\n🛍️  Création des clients test...');
 
-  const clientCiEmail = 'client@logodouman.com';
+  const clientCiEmail = 'client@mandemarket.com';
   const clientCiPassword = 'Client@2024!';
   const clientCiExists = await db.customer.findUnique({ where: { email: clientCiEmail } });
 
@@ -570,7 +570,7 @@ async function main() {
   }
 
   // ===== CLIENT EUROPE (FR) =====
-  const clientFrEmail = 'client.fr@logodouman.com';
+  const clientFrEmail = 'client.fr@mandemarket.com';
   const clientFrPassword = 'ClientFR@2024!';
   const clientFrExists = await db.customer.findUnique({ where: { email: clientFrEmail } });
 
@@ -622,11 +622,11 @@ async function main() {
   console.log(`  Utilisateurs : ${totalUsers} (admin + manager + vendeur)`);
   console.log(`  Clients    : ${totalCustomers} (Afrique + Europe)`);
   console.log('═══════════════════════════════════════');
-  console.log('🔑 ACCÈS ADMIN   : admin@logodouman.com / Admin@2024!');
-  console.log('🔑 ACCÈS MANAGER : manager@logodouman.com / Manager@2024!');
-  console.log('🔑 ACCÈS VENDEUR : vendeur@logodouman.com / Vendeur@2024!');
-  console.log('🔑 CLIENT CI     : client@logodouman.com / Client@2024!');
-  console.log('🔑 CLIENT FR     : client.fr@logodouman.com / ClientFR@2024!');
+  console.log('🔑 ACCÈS ADMIN   : admin@mandemarket.com / Admin@2024!');
+  console.log('🔑 ACCÈS MANAGER : manager@mandemarket.com / Manager@2024!');
+  console.log('🔑 ACCÈS VENDEUR : vendeur@mandemarket.com / Vendeur@2024!');
+  console.log('🔑 CLIENT CI     : client@mandemarket.com / Client@2024!');
+  console.log('🔑 CLIENT FR     : client.fr@mandemarket.com / ClientFR@2024!');
   console.log('═══════════════════════════════════════\n');
 }
 

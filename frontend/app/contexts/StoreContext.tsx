@@ -140,8 +140,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setError('Impossible de charger les données depuis le serveur');
       
       // Fallback vers les données locales
-      const localProducts = localStorage.getItem('logodouman_products');
-      const localCategories = localStorage.getItem('logodouman_categories');
+      const localProducts = localStorage.getItem('mandemarket_products');
+      const localCategories = localStorage.getItem('mandemarket_categories');
       
       if (localProducts && localCategories) {
         setProducts(JSON.parse(localProducts));
@@ -168,13 +168,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Sauvegarder en local quand les données changent
   useEffect(() => {
     if (isHydrated && products.length > 0) {
-      localStorage.setItem('logodouman_products', JSON.stringify(products));
+      localStorage.setItem('mandemarket_products', JSON.stringify(products));
     }
   }, [products, isHydrated]);
 
   useEffect(() => {
     if (isHydrated && categories.length > 0) {
-      localStorage.setItem('logodouman_categories', JSON.stringify(categories));
+      localStorage.setItem('mandemarket_categories', JSON.stringify(categories));
     }
   }, [categories, isHydrated]);
 
@@ -297,8 +297,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const resetToDefaults = () => {
     setProducts(defaultProducts);
     setCategories(defaultCategories);
-    localStorage.setItem('logodouman_products', JSON.stringify(defaultProducts));
-    localStorage.setItem('logodouman_categories', JSON.stringify(defaultCategories));
+    localStorage.setItem('mandemarket_products', JSON.stringify(defaultProducts));
+    localStorage.setItem('mandemarket_categories', JSON.stringify(defaultCategories));
   };
 
   const value: StoreContextType = {

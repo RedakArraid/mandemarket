@@ -26,9 +26,9 @@ async function main() {
     const adminPassword = await bcrypt.hash('admin123', 12);
     const admin = await db.user.create({
       data: {
-        email: 'admin@logodouman.com',
+        email: 'admin@mandemarket.com',
         password: adminPassword,
-        name: 'Administrateur LogoDouman',
+        name: 'Administrateur MandeMarket',
         role: 'admin'
       }
     });
@@ -441,7 +441,7 @@ async function main() {
     console.log(`   🔔 Notifications: 2`);
     
     console.log('\n🔑 Compte admin créé :');
-    console.log(`   Email: admin@logodouman.com`);
+    console.log(`   Email: admin@mandemarket.com`);
     console.log(`   Mot de passe: admin123`);
     
     console.log('\n🚀 Vous pouvez maintenant :');

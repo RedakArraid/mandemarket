@@ -28,7 +28,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Charger le panier depuis localStorage au montage
   useEffect(() => {
-    const savedCart = localStorage.getItem('logodouman_cart');
+    const savedCart = localStorage.getItem('mandemarket_cart');
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
@@ -53,7 +53,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Sauvegarder le panier dans localStorage quand il change
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem('logodouman_cart', JSON.stringify(items));
+      localStorage.setItem('mandemarket_cart', JSON.stringify(items));
     }
   }, [items, isHydrated]);
 

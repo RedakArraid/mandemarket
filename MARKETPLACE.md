@@ -1,8 +1,8 @@
-# LogoDouman — Marketplace
+# MandeMarket — Marketplace
 
 ## Vue d’ensemble
 
-LogoDouman est une **marketplace** : plusieurs vendeurs peuvent proposer des produits ; la plateforme applique une **commission** configurable par vendeur.
+MandeMarket est une **marketplace** : plusieurs vendeurs peuvent proposer des produits ; la plateforme applique une **commission** configurable par vendeur.
 
 ## Fonctionnalités
 

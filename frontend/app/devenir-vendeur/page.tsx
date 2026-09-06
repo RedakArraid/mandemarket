@@ -121,7 +121,7 @@ export default function DevenirVendeurPage() {
             <BuildingStorefrontIcon className="w-5 h-5" />
             <span className="font-semibold text-sm">Programme Vendeur</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Vendez sur LogoDouman</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Vendez sur MandeMarket</h1>
           <p className="text-xl text-orange-100 max-w-2xl mx-auto mb-8">
             Rejoignez notre marketplace et atteignez des milliers de clients en Afrique de l'Ouest et en Europe.
           </p>
@@ -140,7 +140,7 @@ export default function DevenirVendeurPage() {
       {step === 'landing' && (
         <>
           <section className="max-w-5xl mx-auto px-4 py-16">
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">Pourquoi vendre sur LogoDouman ?</h2>
+            <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">Pourquoi vendre sur MandeMarket ?</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {BENEFITS.map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="bg-white rounded-2xl p-6 shadow border border-gray-100 flex gap-4">

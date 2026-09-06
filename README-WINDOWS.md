@@ -1,4 +1,4 @@
-# 🚀 Guide d'installation Windows - LogoDouman
+# 🚀 Guide d'installation Windows - MandeMarket
 
 ## **📋 Prérequis**
 
@@ -67,7 +67,7 @@ wsl --set-default-version 2
 ```bash
 # Cloner le projet
 git clone <url-du-repo>
-cd logodouman
+cd mandemarket
 
 # Construire et démarrer
 docker compose build --no-cache
@@ -89,7 +89,7 @@ docker compose up -d
 
 Voir le tableau complet dans [CREDENTIALS.md](./CREDENTIALS.md). Exemple administrateur :
 
-- Email : `admin@logodouman.com`
+- Email : `admin@mandemarket.com`
 - Mot de passe : `Admin@2024!` (ou la valeur de `SEED_ADMIN_PASSWORD` dans `backend/.env.docker`)
 
 **Ports base de données (docker compose du repo) :** PostgreSQL **5433**, Redis **6380**, Adminer **8080**.
@@ -183,6 +183,6 @@ Si vous rencontrez des problèmes :
 
 ---
 
-**Félicitations !** Votre environnement LogoDouman est prêt.
+**Félicitations !** Votre environnement MandeMarket est prêt.
 
 *Guide revu en mai 2026 (commandes `docker compose`, alignement avec [CREDENTIALS.md](./CREDENTIALS.md)).*

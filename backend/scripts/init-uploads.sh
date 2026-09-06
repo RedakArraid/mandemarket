@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Initialisation des dossiers d'upload LogoDouman..."
+echo "🚀 Initialisation des dossiers d'upload MandeMarket..."
 
 # Créer les dossiers d'upload avec les bonnes permissions
 mkdir -p /app/uploads/products

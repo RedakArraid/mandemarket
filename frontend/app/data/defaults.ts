@@ -1,4 +1,4 @@
-// Données par défaut pour LogoDouman
+// Données par défaut pour MandeMarket
 // Centralisation des produits et catégories
 
 export interface Product {
