@@ -1,9 +1,8 @@
 const express = require('express');
 const { z } = require('zod');
-const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
-const db = new PrismaClient();
 const { requireAuth, requireRole } = require('./middleware.auth');
+const db = require('./db');
 
 // Schémas de validation
 const orderSchema = z.object({

@@ -1,8 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
-const prisma = require('@prisma/client').PrismaClient;
 const router = express.Router();
-const db = new prisma();
+const db = require('./db');
 const { requireAuth, requireAdmin, requireRole } = require('./middleware.auth');
 
 // 🔧 Fonction pour générer un slug à partir du nom

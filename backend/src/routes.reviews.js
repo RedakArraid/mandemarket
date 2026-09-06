@@ -1,8 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
-const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
-const db = new PrismaClient();
+const db = require('./db');
 
 // Zod schema pour validation
 const reviewSchema = z.object({

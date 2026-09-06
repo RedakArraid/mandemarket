@@ -43,7 +43,7 @@ const OPERATOR_SLUG = {
  * @param {string} [params.operatorGateway] — 'mtn_momo' | 'orange_money' | 'wave' | 'moov_money'
  */
 async function initializeTransaction({ orderId, amount, email, callbackUrl, mobilePhone, operatorGateway }) {
-  const reference = `LD-${orderId.substring(0, 8).toUpperCase()}-${Date.now()}`;
+  const reference = `MM-${orderId.substring(0, 8).toUpperCase()}-${Date.now()}`;
   const providerSlug = OPERATOR_SLUG[operatorGateway] ?? null;
 
   const body = {

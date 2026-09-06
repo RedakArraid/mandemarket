@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { requireAuth, requireRole } = require('./middleware.auth');
 const { detectRegion, EUR_XOF_RATE } = require('./utils/region');
 const router = express.Router();
-const db = new PrismaClient();
 const boxtal = require('./services/boxtal.service');
+const db = require('./db');
 
 // Tarifs livraison Afrique (en centimes XOF)
 const AFRICA_SHIPPING_OPTIONS = [

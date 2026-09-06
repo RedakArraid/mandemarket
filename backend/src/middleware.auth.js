@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const db = require('./db');
+
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret';
 
 function requireAuth(req, res, next) {
@@ -26,21 +28,23 @@ function requireAdmin(req, res, next) {
 function requireRole(role) {
   return function (req, res, next) {
     if (!req.user || (Array.isArray(role) ? !role.includes(req.user.role) : req.user.role !== role)) {
-      return res.status(403).json({ error: 'Accès réservé au rôle : ' + (Array.isArray(role) ? role.join(', ') : role) });
+      return res.status(403).json({
+        error: 'Accès réservé au rôle : ' + (Array.isArray(role) ? role.join(', ') : role),
+      });
     }
     next();
   };
 }
 
 async function requireSeller(req, res, next) {
-  const { PrismaClient } = require('@prisma/client');
-  const db = new PrismaClient();
   try {
     const seller = await db.seller.findUnique({
-      where: { userId: req.user.userId }
+      where: { userId: req.user.userId },
     });
     if (!seller || seller.status !== 'approved') {
-      return res.status(403).json({ error: 'Espace vendeur non accessible. Compte vendeur requis ou en attente d\'approbation.' });
+      return res.status(403).json({
+        error: "Espace vendeur non accessible. Compte vendeur requis ou en attente d'approbation.",
+      });
     }
     req.seller = seller;
     next();
@@ -49,4 +53,4 @@ async function requireSeller(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, requireAdmin, requireRole, requireSeller }; 
+module.exports = { requireAuth, requireAdmin, requireRole, requireSeller };

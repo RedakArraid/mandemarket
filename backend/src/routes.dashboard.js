@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
-const db = new PrismaClient();
 const { requireAuth, requireRole } = require('./middleware.auth');
+const db = require('./db');
 
 // GET vue d'ensemble du tableau de bord
 router.get('/overview', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {

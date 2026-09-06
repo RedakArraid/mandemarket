@@ -2,9 +2,8 @@ const express = require('express');
 const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
-const db = new PrismaClient();
+const db = require('./db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mandemarket-secret-key-change-in-production';
 

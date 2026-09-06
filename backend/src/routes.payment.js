@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { detectRegion } = require('./utils/region');
 const router = express.Router();
-const db = new PrismaClient();
+const db = require('./db');
 
 // POST /api/payment/initiate
 // Body: { orderId, gateway?: string, returnBaseUrl?: string }
@@ -104,21 +103,33 @@ router.post('/initiate', async (req, res) => {
 });
 
 // POST /api/payment/webhook/paystack
-// Note: Paystack envoie le corps brut — pour la vérification parfaite de signature,
-// montez cette route AVANT express.json() dans app.js (voir commentaire dans app.js)
+// Le corps brut est fourni par app.js (express.raw) pour la vérif HMAC.
 router.post('/webhook/paystack', async (req, res) => {
   try {
-    if (process.env.PAYSTACK_SECRET_KEY) {
-      const paystackService = require('./services/paystack.service');
-      const signature = req.headers['x-paystack-signature'];
-      const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      if (signature && !paystackService.verifyWebhookSignature(raw, signature)) {
-        console.warn('[Paystack Webhook] Signature invalide');
-        return res.status(401).send('Signature invalide');
-      }
+    const paystackService = require('./services/paystack.service');
+    const signature = req.headers['x-paystack-signature'];
+    const raw = Buffer.isBuffer(req.body)
+      ? req.body.toString('utf8')
+      : typeof req.body === 'string'
+        ? req.body
+        : JSON.stringify(req.body || {});
+
+    if (!process.env.PAYSTACK_SECRET_KEY) {
+      console.warn('[Paystack Webhook] PAYSTACK_SECRET_KEY manquant');
+      return res.status(503).send('Webhook non configuré');
+    }
+    if (!signature || !paystackService.verifyWebhookSignature(raw, signature)) {
+      console.warn('[Paystack Webhook] Signature invalide ou absente');
+      return res.status(401).send('Signature invalide');
     }
 
-    const event = req.body;
+    let event;
+    try {
+      event = JSON.parse(raw);
+    } catch {
+      return res.status(400).send('JSON invalide');
+    }
+
     console.log('[Paystack Webhook]', event?.event, event?.data?.reference);
 
     if (event?.event === 'charge.success') {
@@ -138,7 +149,7 @@ router.post('/webhook/paystack', async (req, res) => {
     res.status(200).json({ received: true });
   } catch (err) {
     console.error('[Paystack Webhook] Erreur:', err);
-    res.status(200).json({ received: true }); // Toujours 200 pour Paystack
+    res.status(200).json({ received: true });
   }
 });
 
@@ -169,7 +180,8 @@ router.post('/notify/cinetpay', async (req, res) => {
 });
 
 // POST /api/payment/webhook/stripe
-router.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+// Corps brut monté dans app.js — ne pas re-parser ici.
+router.post('/webhook/stripe', async (req, res) => {
   try {
     const stripeService = require('./services/stripe.service');
     const sig = req.headers['stripe-signature'];

@@ -1,8 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
-const prisma = require('@prisma/client').PrismaClient;
 const router = express.Router();
-const db = new prisma();
+const db = require('./db');
 const { requireAuth, requireAdmin, requireRole, requireSeller } = require('./middleware.auth');
 const { uploadSingle, deleteImage, extractPublicId, getResponsiveUrls } = require('./services/cloudinary.service');
 
