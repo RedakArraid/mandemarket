@@ -1,8 +1,11 @@
 const { xofCentimesToEurCents } = require('../utils/region');
 
 function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error('Stripe non configuré. Définissez STRIPE_SECRET_KEY');
-  return require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const key = process.env.STRIPE_SECRET_KEY || '';
+  if (!key || /VOTRE|CHANGEZ|xxxx|SECRET$/i.test(key)) {
+    throw new Error('Stripe non configuré : renseignez STRIPE_SECRET_KEY (clé sk_test_… réelle) dans .env');
+  }
+  return require('stripe')(key);
 }
 
 // currency: 'xof' (Afrique) ou 'eur' (Europe)

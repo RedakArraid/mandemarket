@@ -43,6 +43,9 @@ const OPERATOR_SLUG = {
  * @param {string} [params.operatorGateway] — 'mtn_momo' | 'orange_money' | 'wave' | 'moov_money'
  */
 async function initializeTransaction({ orderId, amount, email, callbackUrl, mobilePhone, operatorGateway }) {
+  if (!isConfigured() || /VOTRE|CHANGEZ|xxxx/i.test(process.env.PAYSTACK_SECRET_KEY || '')) {
+    throw new Error('Paystack non configuré : renseignez PAYSTACK_SECRET_KEY (clé sk_test_… réelle) dans .env');
+  }
   const reference = `MM-${orderId.substring(0, 8).toUpperCase()}-${Date.now()}`;
   const providerSlug = OPERATOR_SLUG[operatorGateway] ?? null;
 
