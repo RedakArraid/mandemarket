@@ -314,15 +314,19 @@ async function main() {
   const managerHash = await bcrypt.hash('Manager@2024!', 12);
   const managerUser = await db.user.upsert({
     where: { email: 'manager@mandemarket.com' },
-    update: {},
+    update: {
+      role: 'manager',
+      password: managerHash,
+      name: 'Manager MandeMarket',
+    },
     create: {
       email: 'manager@mandemarket.com',
       password: managerHash,
       name: 'Manager MandeMarket',
-      role: 'user'
+      role: 'manager'
     }
   });
-  console.log(`  ✅ Manager: ${managerUser.email}`);
+  console.log(`  ✅ Manager: ${managerUser.email} (role=manager)`);
 
   // ===== VENDEUR =====
   console.log('\n🏪 Création du vendeur...');

@@ -40,7 +40,7 @@ MandeMarket distingue **deux systèmes d'authentification parallèles** :
 |-------|--------|
 | Email | `manager@mandemarket.com` |
 | Mot de passe | `Manager@2024!` |
-| Rôle | `user` |
+| Rôle | `manager` |
 | Interface | `/admin` (accès limité) |
 | API login | `POST /api/auth/login` |
 

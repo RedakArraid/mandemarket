@@ -111,7 +111,7 @@ model User {
   email         String         @unique
   password      String
   name          String?
-  role          String         @default("user") // user, admin, seller
+  role          String         @default("user") // user, admin, manager, seller, customer
   seller        Seller?
   orders        Order[]
   notifications Notification[]
