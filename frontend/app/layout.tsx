@@ -6,7 +6,7 @@ import { CustomerAuthProvider } from './contexts/CustomerAuthContext'
 import { RegionProvider } from './contexts/RegionContext'
 import LangSync from './components/LangSync'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.soubadigital.com';
 
 // Locales couvertes : toute l'Afrique de l'Ouest francophone + Europe francophone + EN
 const HREFLANG_LANGUAGES: Record<string, string> = {

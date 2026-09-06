@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductClient from './ProductClient';
 
 const API      = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mandemarket.soubadigital.com';
 
 async function getProduct(id: string) {
   try {

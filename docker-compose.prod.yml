@@ -75,6 +75,7 @@ services:
       args:
         NODE_ENV: production
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://apimandemarket.soubadigital.com}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://mandemarket.soubadigital.com}
     container_name: mandemarket-frontend
     env_file:
       - .env.production
