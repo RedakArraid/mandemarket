@@ -231,7 +231,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-orange-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">MandeMarket Admin</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">MandinMarket Admin</h2>
           <p className="text-gray-600">Chargement du dashboard analytics...</p>
         </div>
       </div>
@@ -246,35 +246,38 @@ export default function AdminDashboard() {
   // Interface principale
   return (
     <AuthGuard>
-      <div className="flex min-h-screen bg-orange-50">
+      <div className="flex min-h-screen bg-brand-cream">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-orange-200 flex flex-col justify-between shadow-lg">
+        <aside className="w-64 bg-brand-navy text-white flex flex-col justify-between shadow-lg">
           <div>
-            <div className="p-6 border-b border-orange-200">
-              <h1 className="text-2xl font-bold text-gray-900">MandeMarket</h1>
-              <p className="text-orange-600 font-medium">Analytics Dashboard</p>
-              <p className="text-sm text-gray-500 mt-1">Connecté: {user.email}</p>
+            <div className="p-6 border-b border-white/10">
+              <h1 className="text-2xl font-extrabold">
+                <span className="text-white">Mandin</span>
+                <span className="text-brand-orange">Market</span>
+              </h1>
+              <p className="text-brand-orange font-medium text-sm mt-1">Super Admin</p>
+              <p className="text-sm text-white/50 mt-1 truncate">{user.email}</p>
             </div>
             
-            <nav className="flex flex-col gap-2 p-4">
+            <nav className="flex flex-col gap-1 p-4">
               <button
                 onClick={() => setActiveSection('dashboard')}
-                className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                className={`text-left px-4 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
                   activeSection === 'dashboard' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'text-gray-700 hover:bg-orange-50'
+                    ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 <ChartBarIcon className="w-5 h-5" />
-                Dashboard Analytics
+                Tableau de bord
               </button>
               
               <button
                 onClick={() => setActiveSection('products')}
-                className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                className={`text-left px-4 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
                   activeSection === 'products' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'text-gray-700 hover:bg-orange-50'
+                    ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 <ShoppingBagIcon className="w-5 h-5" />
@@ -285,8 +288,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveSection('categories')}
                 className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                   activeSection === 'categories' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'text-gray-700 hover:bg-orange-50'
+                    ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 <TagIcon className="w-5 h-5" />
@@ -297,8 +300,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveSection('orders')}
                 className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                   activeSection === 'orders' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'text-gray-700 hover:bg-orange-50'
+                    ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 <CogIcon className="w-5 h-5" />
@@ -309,8 +312,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveSection('customers')}
                 className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                   activeSection === 'customers' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'text-gray-700 hover:bg-orange-50'
+                    ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                 }`}
               >
                 <UsersIcon className="w-5 h-5" />
@@ -323,8 +326,8 @@ export default function AdminDashboard() {
                     onClick={() => setActiveSection('vendeurs')}
                     className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                       activeSection === 'vendeurs' 
-                        ? 'bg-orange-600 text-white' 
-                        : 'text-gray-700 hover:bg-orange-50'
+                        ? 'bg-brand-orange text-white' 
+                    : 'text-white/80 hover:bg-white/10'
                     }`}
                   >
                     <BuildingStorefrontIcon className="w-5 h-5" />
@@ -334,8 +337,8 @@ export default function AdminDashboard() {
                     onClick={() => setActiveSection('payouts')}
                     className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                       activeSection === 'payouts'
-                        ? 'bg-orange-600 text-white'
-                        : 'text-gray-700 hover:bg-orange-50'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-white/80 hover:bg-white/10'
                     }`}
                   >
                     <BanknotesIcon className="w-5 h-5" />
@@ -348,8 +351,8 @@ export default function AdminDashboard() {
                   onClick={() => setActiveSection('utilisateurs')}
                   className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
                     activeSection === 'utilisateurs'
-                      ? 'bg-orange-600 text-white'
-                      : 'text-gray-700 hover:bg-orange-50'
+                      ? 'bg-brand-orange text-white'
+                      : 'text-white/80 hover:bg-white/10'
                   }`}
                 >
                   <UsersIcon className="w-5 h-5" />
@@ -359,12 +362,12 @@ export default function AdminDashboard() {
             </nav>
           </div>
           
-          <div className="p-4 border-t border-orange-200">
+          <div className="p-4 border-t border-white/10">
             <button
               onClick={handleLogout}
-              className="w-full bg-orange-100 text-orange-800 px-4 py-2 rounded-lg hover:bg-orange-200 transition-colors"
+              className="w-full bg-red-500/20 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors font-medium"
             >
-              Se déconnecter
+              Déconnexion
             </button>
           </div>
         </aside>

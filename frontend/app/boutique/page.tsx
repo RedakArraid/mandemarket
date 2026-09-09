@@ -207,35 +207,50 @@ function BoutiquePageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 via-white to-orange-50/30">
+    <div className="min-h-screen bg-brand-cream">
       <PublicHeader />
 
       {/* Hero Boutique */}
-      <section className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-full mb-6 backdrop-blur-sm border border-orange-400/30">
-              <ShoppingBagIcon className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 font-semibold">Collection Premium</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-orange-100 to-white bg-clip-text text-transparent">
-              Découvrez Notre Collection
+      <section className="relative text-white overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=600&fit=crop"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-brand-navy/75" />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-20">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">
+              Découvrez tous nos produits
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-              Sacs à main de qualité premium — Élégance et style pour chaque occasion
+            <p className="text-lg text-white/85 mb-8">
+              Des milliers de produits proposés par nos vendeurs.
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className="px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-all border border-white/20 font-semibold hover:scale-105"
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setDebouncedSearch(searchQuery);
+                setCurrentPage(1);
+              }}
+              className="flex rounded-xl overflow-hidden bg-white shadow-xl max-w-xl"
+            >
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher un produit..."
+                className="flex-1 px-5 py-3.5 text-brand-navy outline-none"
+              />
+              <button
+                type="submit"
+                className="px-5 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold transition"
+                aria-label="Rechercher"
+              >
+                <MagnifyingGlassIcon className="w-6 h-6" />
+              </button>
+            </form>
           </div>
         </div>
       </section>

@@ -26,16 +26,16 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
+      <div className="min-h-screen bg-brand-cream">
         <PublicHeader />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <ShoppingBagIcon className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Votre panier est vide</h2>
+            <h2 className="text-3xl font-bold text-brand-navy mb-4">Votre panier est vide</h2>
             <p className="text-gray-600 mb-6">Découvrez nos produits et remplissez votre panier !</p>
             <Link
               href="/boutique"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold"
+              className="inline-flex items-center gap-2 bg-brand-orange text-white px-6 py-3 rounded-xl hover:bg-brand-orange-dark transition-all font-bold"
             >
               <ArrowLeftIcon className="w-5 h-5" />
               Continuer vos achats
@@ -48,15 +48,17 @@ export default function CartPage() {
   }
 
   const priceInFCFA = Math.round(totalPrice / 100);
+  const shipping = 5000;
+  const totalWithShipping = priceInFCFA + shipping;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 via-white to-orange-50/30">
+    <div className="min-h-screen bg-brand-cream">
       <PublicHeader />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* En-tête */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Mon panier</h1>
+          <h1 className="text-4xl font-extrabold text-brand-navy mb-2">Votre panier</h1>
           <p className="text-gray-600">
             {totalItems} {totalItems === 1 ? 'article' : 'articles'}
           </p>
@@ -185,22 +187,36 @@ export default function CartPage() {
 
           {/* Récapitulatif */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 sticky top-24">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Récapitulatif</h2>
+            <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-100 sticky top-24">
+              <h2 className="text-xl font-extrabold text-brand-navy mb-6">Résumé de la commande</h2>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-5 text-sm">
                 <div className="flex justify-between text-gray-700">
-                  <span>Sous-total ({totalItems} {totalItems === 1 ? 'article' : 'articles'})</span>
-                  <span className="font-bold">{priceInFCFA.toLocaleString()} FCFA</span>
+                  <span>Sous-total</span>
+                  <span className="font-semibold">{priceInFCFA.toLocaleString('fr-FR')} FCFA</span>
                 </div>
                 <div className="flex justify-between text-gray-700">
                   <span>Livraison</span>
-                  <span className="font-bold text-green-600">Gratuite</span>
+                  <span className="font-semibold">{shipping.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+                <div className="flex justify-between text-gray-700">
+                  <span>Réduction</span>
+                  <span className="font-semibold">0 FCFA</span>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Code promo"
+                    className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-200"
+                  />
+                  <button type="button" className="px-4 py-2 bg-brand-orange text-white text-sm font-bold rounded-lg hover:bg-brand-orange-dark">
+                    Appliquer
+                  </button>
                 </div>
                 <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between text-xl font-bold text-gray-900">
+                  <div className="flex justify-between text-lg font-extrabold text-brand-navy">
                     <span>Total</span>
-                    <span>{priceInFCFA.toLocaleString()} FCFA</span>
+                    <span>{totalWithShipping.toLocaleString('fr-FR')} FCFA</span>
                   </div>
                 </div>
               </div>
@@ -208,15 +224,19 @@ export default function CartPage() {
               <button
                 onClick={handleCheckout}
                 disabled={isProcessing}
-                className="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-4 px-6 bg-brand-orange text-white rounded-xl font-bold text-lg hover:bg-brand-orange-dark shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <CreditCardIcon className="w-6 h-6" />
-                {isProcessing ? 'Traitement...' : 'Passer la commande'}
+                {isProcessing ? 'Traitement...' : 'Passer la commande →'}
               </button>
+
+              <p className="mt-4 text-center text-xs text-gray-500 flex items-center justify-center gap-1">
+                🔒 Paiement sécurisé · Visa · Mastercard · Mobile Money
+              </p>
 
               <Link
                 href="/boutique"
-                className="block w-full mt-4 text-center text-gray-600 hover:text-orange-600 transition-colors font-medium"
+                className="block w-full mt-4 text-center text-gray-600 hover:text-brand-orange transition-colors font-medium"
               >
                 <ArrowLeftIcon className="w-5 h-5 inline mr-2" />
                 Continuer vos achats

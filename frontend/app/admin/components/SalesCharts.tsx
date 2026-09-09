@@ -35,7 +35,7 @@ interface SalesChartsProps {
   loading?: boolean;
 }
 
-const COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
+const COLORS = ['#1A8F5C', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
 const SalesCharts: React.FC<SalesChartsProps> = ({ data, loading = false }) => {
   const [activeChart, setActiveChart] = useState<'daily' | 'monthly'>('daily');
@@ -163,8 +163,8 @@ const SalesCharts: React.FC<SalesChartsProps> = ({ data, loading = false }) => {
           >
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="#1A8F5C" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="#1A8F5C" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -190,7 +190,7 @@ const SalesCharts: React.FC<SalesChartsProps> = ({ data, loading = false }) => {
             <Area
               type="monotone"
               dataKey={viewMode}
-              stroke="#f97316"
+              stroke="#1A8F5C"
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorRevenue)"
@@ -232,7 +232,7 @@ const SalesCharts: React.FC<SalesChartsProps> = ({ data, loading = false }) => {
                   borderRadius: '8px'
                 }}
               />
-              <Bar dataKey="revenue" fill="#f97316" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenue" fill="#1A8F5C" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

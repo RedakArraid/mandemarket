@@ -99,9 +99,17 @@ router.get('/slug/:slug', async (req, res) => {
       include: {
         products: {
           where: { status: 'active' },
-          take: 12,
+          take: 48,
+          orderBy: { createdAt: 'desc' },
           select: {
-            id: true, name: true, price: true, image: true
+            id: true,
+            name: true,
+            price: true,
+            image: true,
+            categoryId: true,
+            createdAt: true,
+            category: { select: { id: true, name: true } },
+            _count: { select: { reviews: true } },
           }
         },
         _count: { select: { products: true } }
@@ -112,8 +120,34 @@ router.get('/slug/:slug', async (req, res) => {
       return res.status(404).json({ error: 'Vendeur non trouvé' });
     }
 
+    // Moyenne des avis par produit (requête légère)
+    const productIds = seller.products.map((p) => p.id);
+    let ratingByProduct = {};
+    if (productIds.length > 0) {
+      const grouped = await db.review.groupBy({
+        by: ['productId'],
+        where: { productId: { in: productIds } },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+      ratingByProduct = Object.fromEntries(
+        grouped.map((g) => [g.productId, { avg: g._avg.rating || 0, count: g._count.rating || 0 }])
+      );
+    }
+
+    const products = seller.products.map((p) => {
+      const { _count, ...rest } = p;
+      const stats = ratingByProduct[p.id] || { avg: 0, count: _count?.reviews || 0 };
+      return {
+        ...rest,
+        rating: Math.round((stats.avg || 0) * 10) / 10,
+        reviewCount: stats.count,
+      };
+    });
+
     res.json({
       ...seller,
+      products,
       productCount: seller._count.products
     });
   } catch (error) {

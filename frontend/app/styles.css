@@ -56,12 +56,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #f97316, #ea580c);
+  background: linear-gradient(180deg, #1A8F5C, #147A4D);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ea580c, #c2410c);
+  background: linear-gradient(180deg, #147A4D, #0F6340);
 }
 
 /* Styles personnalisés pour MandeMarket */
@@ -97,14 +97,14 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #fed7aa;
+  background: #d9f0e3;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #f97316, #ea580c);
+  background: linear-gradient(to bottom, #1A8F5C, #147A4D);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #ea580c, #c2410c);
+  background: linear-gradient(to bottom, #147A4D, #0F6340);
 }

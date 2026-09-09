@@ -1,52 +1,157 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
-import { StarIcon, BuildingStorefrontIcon } from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
-import { SellerService } from '../../config/api';
 import { useRegion } from '../../contexts/RegionContext';
+import { useCart } from '../../contexts/CartContext';
+import { SellerService } from '../../config/api';
+import {
+  BuildingStorefrontIcon,
+  MapPinIcon,
+  StarIcon as StarOutline,
+  ShareIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
+  ShoppingBagIcon,
+  TruckIcon,
+  ShieldCheckIcon,
+  ChatBubbleLeftRightIcon,
+  Squares2X2Icon,
+  CheckBadgeIcon,
+} from '@heroicons/react/24/outline';
+import { StarIcon as StarSolid, HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
+
+const DEFAULT_BANNER =
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=600&fit=crop';
+
+const TABS = [
+  { id: 'produits', label: 'Produits' },
+  { id: 'apropos', label: 'À propos' },
+  { id: 'avis', label: 'Avis' },
+  { id: 'livraison', label: 'Politique de livraison' },
+] as const;
+
+type TabId = (typeof TABS)[number]['id'];
+
+function Stars({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md' }) {
+  const cls = size === 'md' ? 'w-5 h-5' : 'w-3.5 h-3.5';
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) =>
+        i <= Math.round(value) ? (
+          <StarSolid key={i} className={`${cls} text-amber-400`} />
+        ) : (
+          <StarOutline key={i} className={`${cls} text-gray-300`} />
+        )
+      )}
+    </div>
+  );
+}
 
 export default function VendeurProfilPage() {
   const params = useParams();
   const slug = params?.slug as string;
   const [seller, setSeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<TabId>('produits');
+  const [query, setQuery] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [following, setFollowing] = useState(false);
   const { formatPrice } = useRegion();
+  const { addItem } = useCart();
 
   useEffect(() => {
     if (!slug) return;
     SellerService.getBySlug(slug)
-      .then(data => {
+      .then((data) => {
         setSeller(data);
         if (data?.storeName) {
-          document.title = `${data.storeName} | MandeMarket`;
+          document.title = `${data.storeName} | MandinMarket`;
         }
       })
       .catch(() => setSeller(null))
       .finally(() => setLoading(false));
-    return () => { document.title = 'MandeMarket'; };
+    return () => {
+      document.title = 'MandinMarket';
+    };
   }, [slug]);
+
+  const products = seller?.products || [];
+  const productCount = seller?.productCount ?? products.length;
+
+  const categories = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; count: number }>();
+    products.forEach((p: any) => {
+      if (!p.category?.id) return;
+      const prev = map.get(p.category.id);
+      if (prev) prev.count += 1;
+      else map.set(p.category.id, { id: p.category.id, name: p.category.name, count: 1 });
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [products]);
+
+  const filtered = useMemo(() => {
+    let list = [...products];
+    if (categoryId !== 'all') {
+      list = list.filter((p: any) => p.categoryId === categoryId || p.category?.id === categoryId);
+    }
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      list = list.filter((p: any) => p.name?.toLowerCase().includes(q));
+    }
+    switch (sortBy) {
+      case 'price-low':
+        list.sort((a: any, b: any) => a.price - b.price);
+        break;
+      case 'price-high':
+        list.sort((a: any, b: any) => b.price - a.price);
+        break;
+      case 'name':
+        list.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        break;
+      default:
+        list.sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+    }
+    return list;
+  }, [products, categoryId, query, sortBy]);
+
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: seller?.storeName, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('Lien copié !');
+      }
+    } catch {
+      /* ignore */
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600" />
+      <div className="min-h-screen flex items-center justify-center bg-brand-cream">
+        <div className="w-12 h-12 border-4 border-brand-soft border-t-brand-orange rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!seller) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-cream">
         <PublicHeader />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Boutique introuvable</h1>
+          <h1 className="text-2xl font-bold text-brand-navy mb-2">Boutique introuvable</h1>
           <p className="text-gray-600 mb-6">Cette boutique n&apos;existe pas ou a été supprimée.</p>
-          <Link href="/boutique" className="text-orange-600 hover:underline font-medium">
+          <Link href="/boutique" className="text-brand-orange hover:underline font-medium">
             Voir tous les produits →
           </Link>
         </div>
@@ -55,140 +160,310 @@ export default function VendeurProfilPage() {
     );
   }
 
-  const products = seller.products || [];
-  const productCount = seller.productCount ?? products.length;
-
-  const memberSince = seller.createdAt
-    ? new Date(seller.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-    : null;
+  const slogan =
+    seller.description?.split(/[.!]/)[0]?.trim() ||
+    'Qualité · Style · Confiance';
+  const salesLabel = seller.totalSales
+    ? `${Math.max(1, Math.round(seller.totalSales / 10000))} ventes`
+    : `${productCount} produits`;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <PublicHeader />
 
       {/* Banner */}
-      <div className="relative h-40 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400 overflow-hidden">
-        <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+      <div className="relative h-48 md:h-60 lg:h-72 overflow-hidden">
+        <img
+          src={DEFAULT_BANNER}
+          alt=""
+          className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+        <p className="absolute bottom-6 right-6 md:right-12 text-white/90 font-serif italic text-lg md:text-xl drop-shadow hidden sm:block">
+          Une boutique, de grandes possibilités !
+        </p>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Store header card — overlaps banner */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 mb-8 -mt-12 relative z-10">
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              {seller.logo ? (
-                <img
-                  src={seller.logo}
-                  alt={seller.storeName}
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-4 border-white shadow-md"
-                />
-              ) : (
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center border-4 border-white shadow-md">
-                  <BuildingStorefrontIcon className="w-10 h-10 text-orange-500" />
-                </div>
-              )}
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Identity */}
+        <div className="relative -mt-12 md:-mt-14 mb-6 flex flex-col md:flex-row md:items-end gap-5">
+          <div className="flex-shrink-0">
+            {seller.logo ? (
+              <img
+                src={seller.logo}
+                alt={seller.storeName}
+                className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow-xl bg-white"
+              />
+            ) : (
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-brand-soft border-4 border-white shadow-xl flex items-center justify-center">
+                <BuildingStorefrontIcon className="w-12 h-12 text-brand-orange" />
+              </div>
+            )}
+          </div>
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900">{seller.storeName}</h1>
+          <div className="flex-1 min-w-0 pb-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-brand-navy">{seller.storeName}</h1>
                 {seller.status === 'approved' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                    Vendeur vérifié
-                  </span>
+                  <CheckBadgeIcon className="w-7 h-7 text-sky-500" aria-label="Vendeur vérifié" />
                 )}
-              </div>
-
-              {seller.description && (
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{seller.description}</p>
-              )}
-
-              {/* Stats row */}
-              <div className="flex flex-wrap gap-4 text-sm">
-                {/* Rating */}
-                <div className="flex items-center gap-1.5">
-                  {seller.rating > 0 ? (
-                    <>
-                      <div className="flex">
-                        {[1,2,3,4,5].map(i => (
-                          <StarSolidIcon
-                            key={i}
-                            className={`w-4 h-4 ${i <= Math.round(seller.rating) ? 'text-amber-400' : 'text-gray-200'}`}
-                          />
-                        ))}
-                      </div>
-                      <span className="font-semibold text-gray-900">{seller.rating.toFixed(1)}</span>
-                      <span className="text-gray-500">({seller.reviewCount} avis)</span>
-                    </>
-                  ) : (
-                    <span className="text-gray-400 italic text-xs">Aucun avis pour l'instant</span>
-                  )}
-                </div>
-
-                <span className="text-gray-300">·</span>
-
-                {/* Product count */}
-                <span className="text-gray-600">
-                  <span className="font-semibold text-gray-900">{productCount}</span>{' '}
-                  produit{productCount > 1 ? 's' : ''}
-                </span>
-
-                {memberSince && (
-                  <>
-                    <span className="text-gray-300">·</span>
-                    <span className="text-gray-500">Membre depuis {memberSince}</span>
-                  </>
-                )}
-              </div>
             </div>
+            <p className="text-gray-500 text-sm mb-2 line-clamp-1">{slogan}</p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-1">
+                <MapPinIcon className="w-4 h-4 text-brand-orange" />
+                Abidjan, Côte d&apos;Ivoire
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Stars value={seller.rating || 0} />
+                <span className="font-semibold text-brand-navy">
+                  {(seller.rating || 0).toFixed(1).replace('.', ',')}
+                </span>
+                <span className="text-gray-500">
+                  ({seller.reviewCount || 0} avis) · {salesLabel}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pb-1">
+            <button
+              type="button"
+              onClick={handleShare}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-brand-navy font-semibold text-sm hover:bg-gray-50 transition"
+            >
+              <ShareIcon className="w-4 h-4" />
+              Partager
+            </button>
+            <button
+              type="button"
+              onClick={() => setFollowing((v) => !v)}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition ${
+                following
+                  ? 'bg-brand-soft text-brand-orange border border-brand-orange/30'
+                  : 'bg-brand-orange text-white hover:bg-brand-orange-dark'
+              }`}
+            >
+              {following ? <HeartSolid className="w-4 h-4" /> : <HeartIcon className="w-4 h-4" />}
+              {following ? 'Suivi' : 'Suivre'}
+            </button>
           </div>
         </div>
 
-        {/* Produits */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Produits de <span className="text-orange-600">{seller.storeName}</span>
-          </h2>
-          {products.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center text-gray-500">
-              <BuildingStorefrontIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <p>Aucun produit pour le moment.</p>
-              <Link href="/boutique" className="mt-4 inline-block text-orange-600 hover:underline">
-                Voir tous les produits
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((p: any) => (
-                <Link
-                  key={p.id}
-                  href={`/boutique/${p.id}`}
-                  className="bg-white rounded-xl overflow-hidden shadow border border-gray-100 hover:shadow-lg hover:border-orange-200 transition-all group"
-                >
-                  <div className="aspect-square bg-gray-100 overflow-hidden">
-                    <img
-                      src={p.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400'}
-                      alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm">{p.name}</h3>
-                    <p className="text-orange-600 font-bold mt-1 text-sm">
-                      {formatPrice(p.price)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-8 overflow-x-auto">
+          <nav className="flex gap-6 min-w-max">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                  tab === t.id
+                    ? 'border-brand-orange text-brand-orange'
+                    : 'border-transparent text-gray-500 hover:text-brand-navy'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
         </div>
+
+        {/* Produits tab */}
+        {tab === 'produits' && (
+          <div className="grid lg:grid-cols-[260px_1fr] gap-8 pb-12">
+            {/* Sidebar */}
+            <aside className="space-y-6">
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Rechercher dans cette boutique..."
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange"
+                />
+              </div>
+
+              <div>
+                <h3 className="font-bold text-brand-navy mb-3">Catégories</h3>
+                <ul className="space-y-1">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryId('all')}
+                      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                        categoryId === 'all'
+                          ? 'bg-brand-soft text-brand-orange'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Squares2X2Icon className="w-4 h-4" />
+                      Tout voir
+                    </button>
+                  </li>
+                  {categories.map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => setCategoryId(c.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                          categoryId === c.id
+                            ? 'bg-brand-soft text-brand-orange'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        <span>{c.name}</span>
+                        <span className="text-xs text-gray-400">{c.count}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+
+            {/* Grid */}
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <h2 className="text-xl font-extrabold text-brand-navy">Nos produits</h2>
+                <label className="text-sm text-gray-600 flex items-center gap-2">
+                  Trier par :
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium outline-none focus:ring-2 focus:ring-brand-orange/30"
+                  >
+                    <option value="newest">Plus récents</option>
+                    <option value="price-low">Prix croissant</option>
+                    <option value="price-high">Prix décroissant</option>
+                    <option value="name">Nom A-Z</option>
+                  </select>
+                </label>
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 text-center text-gray-500 border border-gray-100">
+                  <BuildingStorefrontIcon className="w-14 h-14 mx-auto text-gray-300 mb-3" />
+                  <p>Aucun produit trouvé.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {filtered.map((p: any) => (
+                    <div
+                      key={p.id}
+                      className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card group"
+                    >
+                      <Link href={`/boutique/${p.id}`} className="block aspect-square bg-gray-50 overflow-hidden">
+                        <img
+                          src={p.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400'}
+                          alt={p.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        />
+                      </Link>
+                      <div className="p-4">
+                        <Link
+                          href={`/boutique/${p.id}`}
+                          className="font-semibold text-brand-navy line-clamp-1 hover:text-brand-orange"
+                        >
+                          {p.name}
+                        </Link>
+                        <p className="mt-1 font-extrabold text-brand-navy">{formatPrice(p.price)}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <Stars value={p.rating || 0} />
+                            <span>({p.reviewCount || 0})</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => addItem(p, 1)}
+                            className="w-9 h-9 rounded-lg bg-brand-orange text-white flex items-center justify-center hover:bg-brand-orange-dark transition"
+                            aria-label="Ajouter au panier"
+                          >
+                            <ShoppingBagIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* À propos tab */}
+        {tab === 'apropos' && (
+          <div className="pb-12 max-w-3xl">
+            <h2 className="text-xl font-extrabold text-brand-navy mb-4">À propos de la boutique</h2>
+            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+              {seller.description ||
+                `${seller.storeName} propose des produits sélectionnés avec soin pour une expérience d'achat fiable et qualitative.`}
+            </p>
+          </div>
+        )}
+
+        {/* Avis tab */}
+        {tab === 'avis' && (
+          <div className="pb-12">
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-card max-w-xl">
+              <div className="flex justify-center mb-3">
+                <Stars value={seller.rating || 0} size="md" />
+              </div>
+              <p className="text-3xl font-extrabold text-brand-navy mb-1">
+                {(seller.rating || 0).toFixed(1).replace('.', ',')}
+              </p>
+              <p className="text-gray-500">
+                Basé sur {seller.reviewCount || 0} avis client{seller.reviewCount > 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Livraison tab */}
+        {tab === 'livraison' && (
+          <div className="pb-12 max-w-3xl space-y-4">
+            <h2 className="text-xl font-extrabold text-brand-navy">Politique de livraison</h2>
+            <p className="text-gray-600 leading-relaxed">
+              Les délais et frais de livraison dépendent de votre localisation et du transporteur.
+              En Côte d&apos;Ivoire, comptez généralement 48h à Abidjan et 5 à 7 jours pour le reste du pays.
+            </p>
+            <p className="text-gray-600 leading-relaxed">
+              Pour toute question sur une commande, contactez le vendeur ou le support MandinMarket.
+            </p>
+          </div>
+        )}
+
+        {/* Bottom about + features (always visible like mockup) */}
+        {tab === 'produits' && (
+          <div className="border-t border-gray-200 py-10 mb-6">
+            <div className="grid lg:grid-cols-2 gap-10 items-start">
+              <div>
+                <h2 className="text-lg font-extrabold text-brand-navy mb-3">À propos de la boutique</h2>
+                <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
+                  {seller.description ||
+                    `Chez ${seller.storeName}, nous sélectionnons des produits de qualité pour vous offrir le meilleur service.`}
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {[
+                  { icon: TruckIcon, label: 'Livraison rapide' },
+                  { icon: ShieldCheckIcon, label: 'Produits de qualité' },
+                  { icon: ChatBubbleLeftRightIcon, label: 'Service client réactif' },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex flex-col items-center text-center gap-2 p-4">
+                    <div className="w-12 h-12 rounded-xl bg-brand-soft text-brand-orange flex items-center justify-center">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-sm font-semibold text-brand-navy">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
       <PublicFooter />
     </div>
   );

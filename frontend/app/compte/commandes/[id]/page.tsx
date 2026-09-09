@@ -205,9 +205,9 @@ export default function OrderDetailPage() {
         <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${Math.round(item.unitPrice * item.quantity / 100).toLocaleString()} FCFA</td>
       </tr>`).join('');
     win.document.write(`<!DOCTYPE html><html><head><title>Facture #${order.id.substring(0,8).toUpperCase()}</title>
-      <style>body{font-family:sans-serif;margin:40px;color:#111}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px;text-align:left}tfoot td{font-weight:bold}</style>
+      <style>body{font-family:sans-serif;margin:40px;color:#111}table{width:100%;border-collapse:collapse}th{background:#1A8F5C;color:white;padding:8px;text-align:left}tfoot td{font-weight:bold}</style>
     </head><body>
-      <h1 style="color:#f97316">MandeMarket</h1>
+      <h1 style="color:#1A8F5C">MandeMarket</h1>
       <p style="color:#666">Facture #${order.id.substring(0,8).toUpperCase()} · ${new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
       <hr/>
       <p><strong>Client :</strong> ${order.customer?.firstName || ''} ${order.customer?.lastName || ''}<br/>

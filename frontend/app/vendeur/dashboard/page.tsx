@@ -96,7 +96,7 @@ const CONDITION_OPTIONS = [
   { value: 'refurbished', label: 'Reconditionné' },
 ];
 
-const PIE_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444', '#6b7280'];
+const PIE_COLORS = ['#1A8F5C', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444', '#6b7280'];
 
 type Section = 'overview' | 'products' | 'orders' | 'stats' | 'payments' | 'profile';
 
@@ -1075,8 +1075,8 @@ function StatsSection({ orders, products }: { orders: any[]; products: any[] }) 
             <AreaChart data={dailyRevenue} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#1A8F5C" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#1A8F5C" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -1090,7 +1090,7 @@ function StatsSection({ orders, products }: { orders: any[]; products: any[] }) 
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#f97316"
+                stroke="#1A8F5C"
                 strokeWidth={2}
                 fill="url(#colorRevenue)"
               />
@@ -1112,7 +1112,7 @@ function StatsSection({ orders, products }: { orders: any[]; products: any[] }) 
                     formatter={(value: number) => [`${value.toLocaleString('fr-FR')} FCFA`, 'Revenus']}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                   />
-                  <Bar dataKey="revenue" fill="#f97316" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="revenue" fill="#1A8F5C" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1677,7 +1677,11 @@ export default function VendeurDashboardPage() {
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col transition-transform duration-300 md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo + Store */}
         <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-3">
+          <p className="text-lg font-extrabold mb-3">
+            <span className="text-brand-navy">Mandin</span>
+            <span className="text-brand-orange">Market</span>
+          </p>
+          <div className="flex items-center gap-3 mb-1">
             {profile?.logo ? (
               <img src={profile.logo} alt="" className="w-10 h-10 rounded-full object-cover border border-gray-200" />
             ) : (
@@ -1686,6 +1690,7 @@ export default function VendeurDashboardPage() {
               </div>
             )}
             <div className="min-w-0">
+              <p className="text-xs text-gray-500">Ma Boutique</p>
               <p className="font-semibold text-gray-900 text-sm truncate">{storeName}</p>
               <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${statusBg}`}>
                 {statusLabel}
@@ -1705,11 +1710,11 @@ export default function VendeurDashboardPage() {
                     onClick={() => navigateTo(id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       active
-                        ? 'bg-orange-50 text-orange-600 border-r-2 border-orange-500'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-gray-600 hover:bg-brand-soft hover:text-brand-navy'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-orange-500' : 'text-gray-400'}`} />
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-white' : 'text-gray-400'}`} />
                     {label}
                   </button>
                 </li>
@@ -1732,7 +1737,7 @@ export default function VendeurDashboardPage() {
           )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
           >
             <ArrowRightOnRectangleIcon className="w-4 h-4" />
             Déconnexion

@@ -1,334 +1,341 @@
 'use client';
 
+import { useMemo } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useStore } from './contexts/StoreContext';
 import PublicHeader from './components/PublicHeader';
 import PublicFooter from './components/PublicFooter';
-import Link from 'next/link';
 import {
   ShoppingBagIcon,
   TruckIcon,
   ShieldCheckIcon,
   CreditCardIcon,
+  GiftIcon,
   ArrowRightIcon,
-  SparklesIcon
+  CheckCircleIcon,
+  HeartIcon,
+  StarIcon,
 } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
+import { useWishlist } from './hooks/useWishlist';
+import { useCart } from './contexts/CartContext';
+
+const CATEGORY_CARDS = [
+  { name: 'Électronique', slug: 'electronique', image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop' },
+  { name: 'Mode', slug: 'mode-accessoires', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop' },
+  { name: 'Beauté', slug: 'beaute-sante', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop' },
+  { name: 'Maison', slug: 'maison-decoration', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop' },
+  { name: 'Alimentation', slug: 'alimentation', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop' },
+  { name: 'Artisanat', slug: 'artisanat-exotique', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop' },
+  { name: 'Sport', slug: 'sport-loisirs', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop' },
+];
+
+function formatPrice(cents: number) {
+  return `${Math.round(cents / 100).toLocaleString('fr-FR')} FCFA`;
+}
 
 export default function HomePage() {
-  const { getActiveProducts, getActiveCategories, isHydrated } = useStore();
-  const products = isHydrated ? getActiveProducts().slice(0, 6) : [];
-  const categories = isHydrated ? getActiveCategories() : [];
+  const { getActiveProducts, isHydrated } = useStore();
+  const { addItem } = useCart();
+  const { isInWishlist, toggle } = useWishlist();
+
+  const products = useMemo(
+    () => (isHydrated ? getActiveProducts().slice(0, 4) : []),
+    [isHydrated, getActiveProducts]
+  );
+
+  const sellers = useMemo(() => {
+    if (!isHydrated) return [];
+    const map = new Map<string, { id: string; storeName: string; slug?: string; count: number }>();
+    getActiveProducts().forEach((p: any) => {
+      if (!p.seller?.id) return;
+      const prev = map.get(p.seller.id);
+      if (prev) prev.count += 1;
+      else map.set(p.seller.id, {
+        id: p.seller.id,
+        storeName: p.seller.storeName || 'Boutique',
+        slug: p.seller.slug,
+        count: 1,
+      });
+    });
+    return Array.from(map.values()).slice(0, 4);
+  }, [isHydrated, getActiveProducts]);
 
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-brand-soft flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">MandeMarket</h2>
-          <p className="text-gray-600">Chargement...</p>
+          <div className="w-14 h-14 border-4 border-orange-200 border-t-brand-orange rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-bold text-brand-navy text-xl">MandinMarket</p>
         </div>
       </div>
     );
   }
 
-  const categoryEmojis: Record<string, string> = {
-    'electronique': '📱',
-    'mode-accessoires': '👗',
-    'alimentation': '🛒',
-    'beaute-sante': '✨',
-    'maison-decoration': '🏠',
-    'sport-loisirs': '⚽',
-    'artisanat-exotique': '🎨',
-    'services': '🛠️',
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/30 via-white to-orange-50/30">
+    <div className="min-h-screen bg-brand-cream">
       <PublicHeader />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-24 md:py-32 overflow-hidden">
-        {/* Pattern Background */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
-
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-brand-navy">
+        <div
+          className="absolute inset-0 opacity-100"
+          style={{
+            backgroundImage: 'url(/images/brand/hero-accueil-bg.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        <div className="absolute inset-0 bg-brand-navy/55" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-full mb-6 backdrop-blur-sm border border-orange-400/30">
-              <SparklesIcon className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 font-semibold">Marketplace N°1 en Afrique de l'Ouest</span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Tout ce dont vous avez besoin,
-              <span className="block mt-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">
-                livré chez vous
+          <div className="flex items-center min-h-[520px] py-12 lg:py-16">
+            <div className="text-white py-8 max-w-2xl animate-[fadeIn_0.7s_ease-out]">
+              <span className="inline-flex items-center rounded-full bg-brand-orange px-4 py-1.5 text-sm font-semibold mb-6">
+                Marketplace africaine nouvelle génération
               </span>
-            </h1>
-
-            <p className="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed">
-              Découvrez des millions de produits : électronique, mode, alimentation, artisanat et bien plus. Vendeurs vérifiés, paiement sécurisé.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/boutique"
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                <ShoppingBagIcon className="w-5 h-5" />
-                Découvrir la boutique
-                <ArrowRightIcon className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:bg-white/20 transition-all font-bold border border-white/20"
-              >
-                Nous contacter
-              </Link>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-5">
+                Tout ce dont vous avez besoin,{' '}
+                <span className="text-brand-orange">
+                  livré chez vous.
+                </span>
+              </h1>
+              <p className="text-lg text-white/90 mb-8 max-w-lg">
+                Mode, électronique, alimentation, artisanat et bien plus - des milliers de produits proposés par nos vendeurs vérifiés.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/boutique"
+                  className="inline-flex items-center gap-2 bg-brand-orange text-white px-6 py-3.5 rounded-xl font-bold shadow-lg hover:bg-brand-orange-dark transition-all hover:-translate-y-0.5"
+                >
+                  Découvrir la boutique
+                  <ArrowRightIcon className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="/devenir-vendeur"
+                  className="inline-flex items-center gap-2 border-2 border-white/80 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-white/10 transition-all"
+                >
+                  Devenir vendeur
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Avantages */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { icon: TruckIcon, title: 'Livraison Rapide', desc: '48h à Abidjan, 5-7j partout en Côte d\'Ivoire' },
-              { icon: ShieldCheckIcon, title: 'Vendeurs Vérifiés', desc: 'Tous nos vendeurs sont contrôlés et approuvés' },
-              { icon: CreditCardIcon, title: 'Paiement Sécurisé', desc: 'Mobile Money, carte bancaire et paiement à la livraison' },
-              { icon: SparklesIcon, title: 'Artisanat Africain', desc: 'Valorisons les créateurs et artisans locaux' }
-            ].map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <div key={idx} className="text-center group">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-50 rounded-2xl mb-4 group-hover:from-orange-500 group-hover:to-orange-600 transition-all group-hover:scale-110 group-hover:shadow-xl">
-                    <Icon className="w-8 h-8 text-orange-600 group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-gray-600">{item.desc}</p>
-                </div>
-              );
-            })}
-          </div>
+      {/* Trust bar */}
+      <section className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { icon: TruckIcon, title: 'Livraison rapide', desc: '48h à 5-7j partout' },
+            { icon: ShieldCheckIcon, title: 'Vendeurs vérifiés', desc: 'Des boutiques de confiance' },
+            { icon: CreditCardIcon, title: 'Paiement sécurisé', desc: 'Mobile Money, carte bancaire' },
+            { icon: GiftIcon, title: 'Produits variés', desc: 'Des milliers de références' },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-xl border-2 border-brand-orange/30 text-brand-orange flex items-center justify-center flex-shrink-0">
+                <Icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-bold text-brand-navy text-sm">{title}</p>
+                <p className="text-gray-500 text-sm">{desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Catégories */}
-      <section className="py-20 bg-gradient-to-br from-orange-50/50 to-white">
+      {/* Categories */}
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Explorez nos univers
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Des milliers de produits dans toutes les catégories
-            </p>
+          <div className="mb-8">
+            <h2 className="text-3xl font-extrabold text-brand-navy">Explorez nos univers</h2>
+            <p className="text-gray-500 mt-2">Trouvez exactement ce que vous cherchez</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map(category => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            {CATEGORY_CARDS.map((cat) => (
               <Link
-                key={category.id}
-                href={`/boutique?category=${category.slug}`}
-                className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 p-6"
+                key={cat.slug}
+                href={`/boutique?category=${cat.slug}`}
+                className="group text-center"
               >
-                <div className="flex flex-col h-full">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors mb-3">
-                      {categoryEmojis[category.slug] ? `${categoryEmojis[category.slug]} ` : ''}{category.name}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {category.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center text-orange-600 font-semibold text-sm group-hover:gap-2 transition-all mt-4 pt-4 border-t border-gray-100">
-                    <span>Découvrir</span>
-                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                <div className="aspect-square rounded-2xl overflow-hidden bg-white shadow-card mb-2 ring-1 ring-black/5 group-hover:ring-brand-orange/40 transition">
+                  <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 </div>
+                <span className="text-sm font-semibold text-brand-navy group-hover:text-brand-orange">{cat.name}</span>
               </Link>
             ))}
+            <Link href="/boutique" className="group text-center">
+              <div className="aspect-square rounded-2xl bg-brand-orange text-white flex items-center justify-center shadow-card mb-2 text-4xl font-light group-hover:bg-brand-orange-dark transition">
+                +
+              </div>
+              <span className="text-sm font-semibold text-brand-navy">Plus</span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Produits en vedette */}
-      <section className="py-20 bg-white">
+      {/* Nouveautés */}
+      <section className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                Produits en vedette
-              </h2>
-              <p className="text-xl text-gray-600">
-                Découvrez nos meilleures ventes
-              </p>
-            </div>
-            <Link
-              href="/boutique"
-              className="hidden md:inline-flex items-center gap-2 text-orange-600 font-bold hover:gap-4 transition-all"
-            >
-              Voir tous les produits
-              <ArrowRightIcon className="w-5 h-5" />
+          <div className="flex items-end justify-between mb-8 gap-4">
+            <h2 className="text-3xl font-extrabold text-brand-navy">Nouveautés</h2>
+            <Link href="/boutique" className="text-brand-orange font-semibold text-sm inline-flex items-center gap-1 hover:underline">
+              Voir toutes les nouveautés <ArrowRightIcon className="w-4 h-4" />
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map(product => {
-              const category = categories.find(c => c.id === product.categoryId);
-              const isNew = new Date().getTime() - new Date(product.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000;
-
-              return (
-                <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group border border-gray-100 relative">
-                  {isNew && (
-                    <div className="absolute top-4 left-4 z-10">
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-full text-xs font-bold shadow-lg">
-                        <SparklesIcon className="w-3 h-3" />
-                        Nouveau
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="relative aspect-square overflow-hidden bg-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product: any) => (
+              <div key={product.id} className="bg-white rounded-2xl shadow-card overflow-hidden group border border-gray-100">
+                <div className="relative aspect-square bg-gray-50">
+                  <Link href={`/boutique/${product.id}`}>
                     <img
-                      src={product.image || `https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop`}
+                      src={product.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=400&fit=crop'}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => { e.currentTarget.src = `https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop`; }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <Link
-                          href="/boutique"
-                          className="w-full block bg-white text-gray-900 py-2.5 px-4 rounded-lg font-bold hover:bg-orange-500 hover:text-white transition-all shadow-xl text-center"
-                        >
-                          Voir les détails
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="absolute top-4 right-4">
-                      <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${
-                        (product.stock || 0) > 10 ? 'bg-green-500 text-white' :
-                        (product.stock || 0) > 5 ? 'bg-yellow-500 text-white' :
-                        (product.stock || 0) > 0 ? 'bg-red-500 text-white' :
-                        'bg-gray-500 text-white'
-                      }`}>
-                        {(product.stock || 0) > 0 ? `${product.stock}` : 'Rupture'}
-                      </span>
-                    </div>
+                  </Link>
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    Nouveau
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggle(Number(product.id))}
+                    className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center shadow hover:scale-105 transition"
+                    aria-label="Favori"
+                  >
+                    {isInWishlist(Number(product.id)) ? (
+                      <HeartSolid className="w-5 h-5 text-red-500" />
+                    ) : (
+                      <HeartIcon className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
+                </div>
+                <div className="p-4">
+                  <Link href={`/boutique/${product.id}`} className="font-semibold text-brand-navy line-clamp-1 hover:text-brand-orange">
+                    {product.name}
+                  </Link>
+                  <p className="mt-1 font-extrabold text-brand-navy">{formatPrice(product.price)}</p>
+                  <div className="mt-2 flex items-center gap-1 text-amber-400 text-xs">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <StarIcon key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                    <span className="text-gray-400 ml-1">(12)</span>
                   </div>
-
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">
-                        {category?.name}
-                      </span>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                      {product.name}
-                    </h3>
-
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                      {product.description}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">
-                          {Math.round(product.price / 100).toLocaleString()} F
-                        </div>
-                        <div className="text-xs text-gray-500 font-medium">
-                          Prix TTC
-                        </div>
-                      </div>
-                      <button
-                        className={`p-3 rounded-xl transition-all ${
-                          (product.stock || 0) === 0
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl hover:scale-110'
-                        }`}
-                        disabled={(product.stock || 0) === 0}
-                      >
-                        <ShoppingBagIcon className="w-6 h-6" />
-                      </button>
-                    </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-xs text-gray-500 truncate max-w-[60%]">
+                      {product.seller?.storeName || 'MandinMarket'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => addItem(product, 1)}
+                      className="w-9 h-9 rounded-lg bg-brand-orange text-white flex items-center justify-center hover:bg-brand-orange-dark transition"
+                      aria-label="Ajouter au panier"
+                    >
+                      <ShoppingBagIcon className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link
-              href="/boutique"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              Voir toute la collection
-              <ArrowRightIcon className="w-5 h-5" />
-            </Link>
+              </div>
+            ))}
+            {products.length === 0 && (
+              <p className="col-span-full text-center text-gray-500 py-12">Aucun produit pour le moment.</p>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Devenez vendeur */}
-      <section className="py-20 bg-white">
+      {/* Seller CTA */}
+      <section className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-white grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <span className="text-orange-400 font-bold text-sm uppercase tracking-widest mb-3 block">Pour les entrepreneurs</span>
-              <h2 className="text-4xl font-bold mb-4">Vendez sur MandeMarket</h2>
-              <p className="text-gray-300 text-lg mb-6">
-                Rejoignez notre réseau de vendeurs certifiés. Créez votre boutique en ligne, touchez des milliers de clients en Côte d'Ivoire et en France.
-              </p>
-              <ul className="space-y-2 text-gray-300 mb-8">
-                {['Commission réduite de 10%', 'Tableau de bord vendeur complet', 'Paiements Mobile Money & virement', 'Support dédié aux vendeurs'].map(item => (
-                  <li key={item} className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">✓</span>
-                    {item}
+          <div className="grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-card">
+            <div className="relative min-h-[280px] lg:min-h-[360px]">
+              <Image
+                src="/images/brand/vendeur-cta.jpg"
+                alt="Vendeur MandinMarket"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+            <div className="bg-brand-navy text-white p-8 lg:p-12 flex flex-col justify-center">
+              <p className="text-brand-orange font-bold text-sm tracking-wider mb-3">POUR LES ENTREPRENEURS</p>
+              <h2 className="text-3xl font-extrabold mb-6">Vendez sur MandinMarket</h2>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Créez votre boutique en ligne',
+                  'Gérez vos commandes',
+                  'Recevez vos paiements',
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3">
+                    <CheckCircleIcon className="w-5 h-5 text-brand-orange flex-shrink-0" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <Link href="/vendeur" className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg">
-                Ouvrir ma boutique
+              <Link
+                href="/devenir-vendeur"
+                className="inline-flex items-center justify-center gap-2 self-start bg-brand-orange hover:bg-brand-orange-dark text-white px-6 py-3.5 rounded-xl font-bold transition"
+              >
+                Créer ma boutique
                 <ArrowRightIcon className="w-5 h-5" />
               </Link>
-            </div>
-            <div className="hidden md:grid grid-cols-2 gap-4">
-              {[
-                { emoji: '📦', label: 'Tous types de produits' },
-                { emoji: '💳', label: 'Paiements automatiques' },
-                { emoji: '📊', label: 'Statistiques détaillées' },
-                { emoji: '🌍', label: 'Afrique + Europe' },
-              ].map(item => (
-                <div key={item.label} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/10">
-                  <div className="text-4xl mb-3">{item.emoji}</div>
-                  <div className="text-sm font-semibold text-gray-200">{item.label}</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Rejoignez MandeMarket aujourd'hui
-          </h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Des milliers de vendeurs, des millions de produits. Afrique de l'Ouest et Europe.
-          </p>
-          <Link
-            href="/boutique"
-            className="inline-flex items-center gap-2 bg-white text-orange-600 px-10 py-5 rounded-xl hover:bg-gray-50 transition-all font-bold shadow-2xl hover:scale-105 text-lg"
-          >
-            Commencer le shopping
-            <ArrowRightIcon className="w-6 h-6" />
-          </Link>
+      {/* Popular shops */}
+      {sellers.length > 0 && (
+        <section className="pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-extrabold text-brand-navy mb-8">Nos boutiques populaires</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {sellers.map((s) => (
+                <Link
+                  key={s.id}
+                  href={s.slug ? `/vendeur/${s.slug}` : '/vendeur'}
+                  className="bg-white rounded-2xl p-5 shadow-card border border-gray-100 hover:border-brand-orange/40 transition flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-brand-soft text-brand-orange font-bold flex items-center justify-center">
+                    {s.storeName.slice(0, 1)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-brand-navy truncate">{s.storeName}</p>
+                    <p className="text-xs text-gray-500">{s.count} produits · ★ 4.8</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Newsletter */}
+      <section className="pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl bg-brand-orange px-6 py-12 md:px-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
+              backgroundImage: 'radial-gradient(circle at 20% 50%, white 0, transparent 40%), radial-gradient(circle at 80% 30%, white 0, transparent 35%)',
+            }} />
+            <h2 className="relative text-3xl font-extrabold text-white mb-3">Ne manquez aucune nouveauté</h2>
+            <p className="relative text-white/90 mb-6">Recevez nos offres et bons plans directement par e-mail</p>
+            <form
+              className="relative flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input
+                type="email"
+                required
+                placeholder="Votre adresse e-mail"
+                className="flex-1 rounded-xl px-4 py-3.5 outline-none text-brand-navy"
+              />
+              <button type="submit" className="bg-brand-navy text-white font-bold px-6 py-3.5 rounded-xl hover:bg-brand-navy-light transition">
+                S&apos;inscrire
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 

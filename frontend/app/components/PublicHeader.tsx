@@ -6,46 +6,40 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../contexts/CartContext';
 import { useCustomerAuth } from '../contexts/CustomerAuthContext';
 import { useRegion, ALL_COUNTRIES } from '../contexts/RegionContext';
+import BrandLogo from './BrandLogo';
 import {
   Bars3Icon,
   XMarkIcon,
   ShoppingBagIcon,
-  HomeIcon,
-  NewspaperIcon,
-  EnvelopeIcon,
   BuildingStorefrontIcon,
   UserCircleIcon,
   ChevronDownIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
-const AFRICA_CODES  = ['CI','SN','ML','BF','TG','BJ','GN','GH','NG','CM','NE','MA'];
-const EUROPE_CODES  = ['FR','BE','CH','LU','DE','IT','ES','PT','NL','GB','AT','IE'];
+const AFRICA_CODES = ['CI', 'SN', 'ML', 'BF', 'TG', 'BJ', 'GN', 'GH', 'NG', 'CM', 'NE', 'MA'];
+const EUROPE_CODES = ['FR', 'BE', 'CH', 'LU', 'DE', 'IT', 'ES', 'PT', 'NL', 'GB', 'AT', 'IE'];
 
 export default function PublicHeader() {
-  const [isMenuOpen, setIsMenuOpen]       = useState(false);
-  const [countryOpen, setCountryOpen]     = useState(false);
-  const [searchOpen, setSearchOpen]       = useState(false);
-  const [searchValue, setSearchValue]     = useState('');
-  const dropdownRef                        = useRef<HTMLDivElement>(null);
-  const searchRef                          = useRef<HTMLInputElement>(null);
-  const pathname                           = usePathname();
-  const router                             = useRouter();
-  const { totalItems, items }              = useCart();
-  const { customer, isAuthenticated }      = useCustomerAuth();
-  const { lang, setLang, countryCode, countryInfo, isDetecting, setCountry, t } = useRegion();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { totalItems } = useCart();
+  const { customer, isAuthenticated } = useCustomerAuth();
+  const { lang, setLang, countryCode, countryInfo, isDetecting, setCountry } = useRegion();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
       router.push(`/boutique?search=${encodeURIComponent(searchValue.trim())}`);
-      setSearchOpen(false);
       setSearchValue('');
       setIsMenuOpen(false);
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -56,106 +50,119 @@ export default function PublicHeader() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) =>
+    path === '/' ? pathname === '/' : pathname?.startsWith(path);
 
   const navLinks = [
-    { href: '/', label: t('nav.home'), icon: HomeIcon },
-    { href: '/boutique', label: t('nav.shop'), icon: ShoppingBagIcon },
-    { href: '/blog', label: t('nav.blog'), icon: NewspaperIcon },
-    { href: '/contact', label: t('nav.contact'), icon: EnvelopeIcon },
+    { href: '/', label: 'Accueil' },
+    { href: '/boutique', label: 'Boutique' },
+    { href: '/bons-plans', label: 'Bons plans' },
+    { href: '/a-propos', label: 'À propos' },
+    { href: '/contact', label: 'Contact' },
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 backdrop-blur-md bg-white/95">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        {/* Top row */}
+        <div className="flex items-center gap-4 h-16 md:h-[72px]">
+          <BrandLogo size="md" />
 
-          {/* Logo + contrôles région/langue */}
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 bg-clip-text text-transparent hover:from-orange-500 hover:to-orange-700 transition-all duration-300">
-              MandeMarket
-            </Link>
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-auto">
+            <div className="relative w-full">
+              <input
+                type="search"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Rechercher un produit, une marque..."
+                className="w-full rounded-full bg-brand-cream border border-transparent focus:border-brand-orange focus:ring-2 focus:ring-orange-200 pl-5 pr-12 py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none transition"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-brand-orange"
+                aria-label="Rechercher"
+              >
+                <MagnifyingGlassIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </form>
 
-            {/* Sélecteur de pays */}
-            <div className="relative hidden sm:block" ref={dropdownRef}>
+          <div className="hidden lg:flex items-center gap-1 ml-auto">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setCountryOpen(!countryOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors text-sm"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-brand-soft text-sm"
               >
                 {isDetecting ? (
-                  <span className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                  <span className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="text-base leading-none">{countryInfo.flag}</span>
+                  <span>{countryInfo.flag}</span>
                 )}
                 <span className="font-medium text-gray-700 text-xs">{countryCode}</span>
-                <ChevronDownIcon className={`w-3 h-3 text-gray-400 transition-transform ${countryOpen ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`w-3 h-3 text-gray-400 ${countryOpen ? 'rotate-180' : ''}`} />
               </button>
-
               {countryOpen && (
-                <div className="absolute left-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                  {/* Afrique */}
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                   <div className="px-3 pt-3 pb-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Afrique de l'Ouest</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Afrique</p>
                     <div className="grid grid-cols-3 gap-1">
-                      {AFRICA_CODES.map(code => {
+                      {AFRICA_CODES.map((code) => {
                         const c = ALL_COUNTRIES[code];
                         return (
                           <button
                             key={code}
-                            onClick={() => { setCountry(code); setCountryOpen(false); }}
-                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                            onClick={() => {
+                              setCountry(code);
+                              setCountryOpen(false);
+                            }}
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs ${
                               countryCode === code
                                 ? 'bg-orange-100 text-orange-700 font-semibold'
                                 : 'hover:bg-gray-50 text-gray-700'
                             }`}
                           >
                             <span>{c.flag}</span>
-                            <span className="truncate">{code}</span>
+                            <span>{code}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                  {/* Europe */}
                   <div className="px-3 pt-2 pb-3 border-t border-gray-100 mt-2">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Europe</p>
                     <div className="grid grid-cols-3 gap-1">
-                      {EUROPE_CODES.map(code => {
+                      {EUROPE_CODES.map((code) => {
                         const c = ALL_COUNTRIES[code];
                         return (
                           <button
                             key={code}
-                            onClick={() => { setCountry(code); setCountryOpen(false); }}
-                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                            onClick={() => {
+                              setCountry(code);
+                              setCountryOpen(false);
+                            }}
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs ${
                               countryCode === code
                                 ? 'bg-orange-100 text-orange-700 font-semibold'
                                 : 'hover:bg-gray-50 text-gray-700'
                             }`}
                           >
                             <span>{c.flag}</span>
-                            <span className="truncate">{code}</span>
+                            <span>{code}</span>
                           </button>
                         );
                       })}
                     </div>
-                  </div>
-                  {/* Région détectée */}
-                  <div className="px-3 pb-2 border-t border-gray-100 pt-2">
-                    <p className="text-xs text-gray-400 text-center">
-                      {isDetecting ? 'Détection en cours…' : `Région : ${countryInfo.region === 'africa' ? 'Afrique' : 'Europe'} · Paiement : ${countryInfo.region === 'africa' ? 'Paystack / FCFA' : 'Stripe / EUR'}`}
-                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Sélecteur de langue */}
-            <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 rounded-full p-0.5">
+            <div className="flex items-center gap-0.5 bg-gray-100 rounded-full p-0.5 mr-1">
               <button
                 type="button"
                 onClick={() => setLang('fr')}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                  lang === 'fr' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                  lang === 'fr' ? 'bg-white text-brand-orange shadow-sm' : 'text-gray-500'
                 }`}
               >
                 FR
@@ -163,58 +170,26 @@ export default function PublicHeader() {
               <button
                 type="button"
                 onClick={() => setLang('en')}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                  lang === 'en' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                  lang === 'en' ? 'bg-white text-brand-orange shadow-sm' : 'text-gray-500'
                 }`}
               >
                 EN
               </button>
             </div>
-          </div>
 
-          {/* Navigation Desktop */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    isActive(link.href)
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-200'
-                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Actions Desktop */}
-          <div className="hidden md:flex items-center gap-2">
-            {/* Search button */}
-            <button
-              onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50); }}
-              className="p-2 text-gray-600 hover:text-orange-600 transition-colors"
-              title="Rechercher"
-            >
-              <MagnifyingGlassIcon className="w-5 h-5" />
-            </button>
             <Link
               href="/devenir-vendeur"
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-orange-600 text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-navy hover:text-brand-orange transition-colors"
             >
               <BuildingStorefrontIcon className="w-5 h-5" />
-              {t('nav.seller')}
+              Devenir vendeur
             </Link>
+
             {isAuthenticated ? (
               <Link
                 href="/compte/dashboard"
-                className="flex items-center gap-2 px-3 py-2 text-orange-600 hover:bg-orange-50 text-sm font-medium rounded-lg transition-colors"
-                title={`${t('nav.account')} (${customer?.firstName})`}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-orange hover:bg-brand-soft rounded-lg"
               >
                 <UserCircleIcon className="w-5 h-5" />
                 {customer?.firstName}
@@ -222,132 +197,106 @@ export default function PublicHeader() {
             ) : (
               <Link
                 href="/compte/login"
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-orange-600 text-sm font-medium rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-navy hover:text-brand-orange"
               >
                 <UserCircleIcon className="w-5 h-5" />
-                {t('nav.login')}
+                Connexion
               </Link>
             )}
-            <button
-              onClick={() => { window.location.href = '/panier'; }}
-              className="relative inline-block p-2 text-gray-700 hover:text-orange-600 transition-colors cursor-pointer"
-              title="Voir le panier"
+
+            <Link
+              href="/panier"
+              className="relative p-2 text-brand-navy hover:text-brand-orange transition-colors"
+              aria-label="Panier"
             >
               <ShoppingBagIcon className="w-6 h-6" />
-              {totalItems > 0 && (
-                <span className="absolute top-0 right-0 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center transform translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ zIndex: 10 }}>
-                  {totalItems > 99 ? '99+' : totalItems}
-                </span>
-              )}
-            </button>
+              <span className="absolute -top-0.5 -right-0.5 min-w-[1.15rem] h-[1.15rem] px-1 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            </Link>
           </div>
 
-          {/* Menu Mobile Toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-orange-50 transition-colors"
+            className="lg:hidden ml-auto p-2 rounded-lg text-brand-navy hover:bg-brand-soft"
+            aria-label="Menu"
           >
             {isMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Menu Mobile */}
+        {/* Nav row desktop */}
+        <nav className="hidden md:flex items-center gap-1 pb-3 -mt-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                isActive(link.href)
+                  ? 'text-brand-orange bg-brand-soft'
+                  : 'text-brand-navy/80 hover:text-brand-orange hover:bg-brand-soft'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            {/* Pays + langue mobile */}
-            <div className="flex items-center justify-between px-4 mb-4 pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{countryInfo.flag}</span>
-                <span className="text-sm font-medium text-gray-700">{countryInfo.name}</span>
+          <div className="lg:hidden border-t border-gray-100 py-4 space-y-3">
+            <form onSubmit={handleSearch} className="px-1">
+              <div className="relative">
+                <input
+                  type="search"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="Rechercher un produit..."
+                  className="w-full rounded-full bg-brand-cream pl-4 pr-11 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-200"
+                />
+                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  <MagnifyingGlassIcon className="w-5 h-5" />
+                </button>
               </div>
-              <div className="flex items-center gap-0.5 bg-gray-100 rounded-full p-0.5">
-                <button onClick={() => setLang('fr')} className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${lang === 'fr' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500'}`}>FR</button>
-                <button onClick={() => setLang('en')} className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${lang === 'en' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500'}`}>EN</button>
-              </div>
-            </div>
-            <nav className="flex flex-col gap-2">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive(link.href) ? 'bg-orange-100 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {link.label}
-                  </Link>
-                );
-              })}
-              <button
-                onClick={() => { setIsMenuOpen(false); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50); }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left text-gray-700 hover:bg-gray-50"
-              >
-                <MagnifyingGlassIcon className="w-5 h-5" />
-                Rechercher
-              </button>
-              <button
-                onClick={() => { setIsMenuOpen(false); window.location.href = '/panier'; }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left text-gray-700 hover:bg-gray-50"
-              >
-                <ShoppingBagIcon className="w-5 h-5" />
-                Panier {totalItems > 0 && `(${totalItems})`}
-              </button>
-              {isAuthenticated ? (
-                <Link href="/compte/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-orange-600 font-medium hover:bg-orange-50">
-                  <UserCircleIcon className="w-5 h-5" />
-                  Mon compte ({customer?.firstName})
+            </form>
+            <nav className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`px-4 py-3 rounded-lg font-medium ${
+                    isActive(link.href) ? 'bg-orange-100 text-brand-orange' : 'text-brand-navy hover:bg-gray-50'
+                  }`}
+                >
+                  {link.label}
                 </Link>
-              ) : (
-                <Link href="/compte/login" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50">
-                  <UserCircleIcon className="w-5 h-5" />
-                  Connexion / Inscription
-                </Link>
-              )}
+              ))}
+              <Link
+                href="/devenir-vendeur"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-4 py-3 rounded-lg text-brand-navy hover:bg-gray-50"
+              >
+                Devenir vendeur
+              </Link>
+              <Link
+                href={isAuthenticated ? '/compte/dashboard' : '/compte/login'}
+                onClick={() => setIsMenuOpen(false)}
+                className="px-4 py-3 rounded-lg text-brand-navy hover:bg-gray-50"
+              >
+                {isAuthenticated ? `Mon compte (${customer?.firstName})` : 'Connexion'}
+              </Link>
+              <Link
+                href="/panier"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-4 py-3 rounded-lg text-brand-navy hover:bg-gray-50"
+              >
+                Panier ({totalItems})
+              </Link>
             </nav>
           </div>
         )}
       </div>
-
-      {/* Search overlay */}
-      {searchOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-start justify-center pt-20 px-4" onClick={() => setSearchOpen(false)}>
-          <form
-            onSubmit={handleSearch}
-            className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center px-4 py-3 gap-3">
-              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={searchValue}
-                onChange={e => setSearchValue(e.target.value)}
-                placeholder="Rechercher un produit..."
-                className="flex-1 text-lg outline-none text-gray-900 placeholder-gray-400"
-              />
-              {searchValue && (
-                <button type="button" onClick={() => setSearchValue('')} className="p-1 hover:bg-gray-100 rounded-full">
-                  <XMarkIcon className="w-4 h-4 text-gray-400" />
-                </button>
-              )}
-              <button type="button" onClick={() => setSearchOpen(false)} className="p-1 hover:bg-gray-100 rounded-full ml-1">
-                <XMarkIcon className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <div className="border-t border-gray-100 px-4 py-3 bg-gray-50 flex items-center justify-between">
-              <span className="text-xs text-gray-500">Appuyez sur Entrée pour rechercher</span>
-              <button type="submit" className="px-4 py-1.5 bg-orange-500 text-white text-sm font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                Rechercher
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </header>
   );
 }
