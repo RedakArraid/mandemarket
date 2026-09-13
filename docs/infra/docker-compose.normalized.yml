@@ -1,0 +1,250 @@
+name: mandemarket
+services:
+  adminer:
+    container_name: mandemarket-adminer
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+    image: adminer:latest
+    networks:
+      mandemarket_network: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+    restart: unless-stopped
+  backend:
+    build:
+      context: /Users/kader/Desktop/mandemarket/backend
+      dockerfile: Dockerfile
+    container_name: mandemarket-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    environment:
+      ALLOWED_FILE_TYPES: jpg,jpeg,png,gif,webp,pdf
+      API_PREFIX: /api
+      APP_NAME: MandeMarket API
+      APP_VERSION: 2.0.0
+      BCRYPT_ROUNDS: "12"
+      BOXTAL_LOGIN: VOTRE_LOGIN_BOXTAL
+      BOXTAL_PASSWORD: VOTRE_PASSWORD_BOXTAL
+      BOXTAL_SENDER_CITY: Paris
+      BOXTAL_SENDER_COUNTRY: FR
+      CINETPAY_API_KEY: ""
+      CINETPAY_SITE_ID: ""
+      CLOUDINARY_API_KEY: VOTRE_CLOUDINARY_API_KEY
+      CLOUDINARY_API_SECRET: VOTRE_CLOUDINARY_API_SECRET
+      CLOUDINARY_CLOUD_NAME: VOTRE_CLOUD_NAME
+      COOKIE_SECRET: changez-ce-cookie-secret-en-production
+      CORS_CREDENTIALS: "true"
+      CORS_ORIGIN: http://localhost:3000,http://frontend:3000,http://127.0.0.1:3000
+      DATABASE_URL: postgresql://postgres:mandemarket123@postgres:5432/mandemarket
+      DB_HOST: postgres
+      DB_NAME: mandemarket
+      DB_PASSWORD: mandemarket123
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DOCS_ENABLED: "true"
+      EMAIL_FROM: noreply@mandemarket.com
+      EMAIL_SERVICE: smtp
+      HEALTH_CHECK_ENDPOINT: /health
+      HEALTH_CHECK_INTERVAL: "30000"
+      HOST: 0.0.0.0
+      JWT_EXPIRES_IN: 24h
+      JWT_SECRET: changez-ce-secret-en-production
+      LOG_FILE: /app/logs/app.log
+      LOG_LEVEL: info
+      LOG_MAX_FILES: "5"
+      LOG_MAX_SIZE: 10m
+      MAX_FILE_SIZE: "5242880"
+      METRICS_ENABLED: "false"
+      METRICS_PORT: "9090"
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=512
+      PAYSTACK_PUBLIC_KEY: pk_test_VOTRE_CLE_PAYSTACK_PUBLIC
+      PAYSTACK_SECRET_KEY: sk_test_VOTRE_CLE_PAYSTACK_SECRET
+      PORT: "4002"
+      RATE_LIMIT_MAX_REQUESTS: "100"
+      RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: "true"
+      RATE_LIMIT_WINDOW_MS: "900000"
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis123
+      REDIS_PORT: "6379"
+      REDIS_URL: redis://:redis123@redis:6379
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      REFRESH_TOKEN_SECRET: changez-ce-refresh-secret-en-production
+      SEED_ADMIN_EMAIL: admin@mandemarket.com
+      SEED_ADMIN_PASSWORD: Admin@2024!
+      SEED_DATA: "true"
+      SESSION_SECRET: changez-ce-session-secret-en-production
+      SMTP_HOST: ""
+      SMTP_PASS: ""
+      SMTP_PORT: "587"
+      SMTP_USER: ""
+      STRIPE_PUBLISHABLE_KEY: pk_test_VOTRE_CLE_STRIPE_PUBLIQUE
+      STRIPE_SECRET_KEY: sk_test_VOTRE_CLE_STRIPE_SECRET
+      STRIPE_WEBHOOK_SECRET: ""
+      UPLOAD_DIR: /app/uploads
+      UV_THREADPOOL_SIZE: "4"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:4002/health
+      timeout: 15s
+      interval: 30s
+      retries: 5
+      start_period: 1m30s
+    networks:
+      mandemarket_network: null
+    ports:
+      - mode: ingress
+        target: 4002
+        published: "4002"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/kader/Desktop/mandemarket/backend/uploads
+        target: /app/uploads
+        bind: {}
+      - type: bind
+        source: /Users/kader/Desktop/mandemarket/backend/logs
+        target: /app/logs
+        bind: {}
+  frontend:
+    build:
+      context: /Users/kader/Desktop/mandemarket/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4002
+        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+        NODE_ENV: production
+    container_name: mandemarket-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+        required: true
+    environment:
+      HOSTNAME: 0.0.0.0
+      INTERNAL_API_URL: http://backend:4002
+      NEXT_PUBLIC_ANALYTICS_ENABLED: "false"
+      NEXT_PUBLIC_API_URL: http://localhost:4002
+      NEXT_PUBLIC_APP_DESCRIPTION: Plateforme e-commerce Afrique & Europe
+      NEXT_PUBLIC_APP_NAME: MandeMarket
+      NEXT_PUBLIC_APP_VERSION: 2.1.0
+      NEXT_PUBLIC_BRAND_COLOR: '#ea580c'
+      NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: pk_test_VOTRE_CLE_PAYSTACK_PUBLIQUE
+      NEXT_PUBLIC_SECURE_MODE: "true"
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_VOTRE_CLE_STRIPE_PUBLIQUE
+      NEXT_PUBLIC_THEME_COLOR: '#f97316'
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_ENV: production
+      PORT: "3000"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:3000
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 1m0s
+    networks:
+      mandemarket_network: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+    restart: unless-stopped
+  postgres:
+    container_name: mandemarket-postgres
+    environment:
+      POSTGRES_DB: mandemarket
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+      POSTGRES_PASSWORD: mandemarket123
+      POSTGRES_USER: postgres
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres -d mandemarket
+      timeout: 5s
+      interval: 10s
+      retries: 5
+      start_period: 30s
+    image: postgres:16-alpine
+    networks:
+      mandemarket_network: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5433"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
+        volume: {}
+      - type: bind
+        source: /Users/kader/Desktop/mandemarket/backend/scripts/init-db.sql
+        target: /docker-entrypoint-initdb.d/init-db.sql
+        read_only: true
+        bind: {}
+  redis:
+    command:
+      - redis-server
+      - --requirepass
+      - redis123
+      - --appendonly
+      - "yes"
+    container_name: mandemarket-redis
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - -a
+        - redis123
+        - ping
+      timeout: 3s
+      interval: 10s
+      retries: 5
+      start_period: 10s
+    image: redis:7-alpine
+    networks:
+      mandemarket_network: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6380"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /data
+        volume: {}
+networks:
+  mandemarket_network:
+    name: mandemarket_mandemarket_network
+    driver: bridge
+volumes:
+  postgres_data:
+    name: mandemarket_postgres_data
+  redis_data:
+    name: mandemarket_redis_data

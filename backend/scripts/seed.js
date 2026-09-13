@@ -1,6 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ ERREUR: Le seed est formellement interdit en environnement de PRODUCTION.');
+  process.exit(1);
+}
+
 const db = new PrismaClient();
 
 async function main() {

@@ -94,6 +94,8 @@ Thumbs.db
 # Temporary folders
 tmp/
 temp/
+backups/
+*.sql
 
 # Editor directories and files
 .vscode/*

@@ -87,7 +87,7 @@ function extractPublicId(url) {
   }
   
   // Format alternatif
-  const matches2 = url.match(/\/([^\/]+)\.\w+$/);
+  const matches2 = url.match(/\/([^/]+)\.\w+$/);
   if (matches2 && matches2[1]) {
     return `mandemarket/${matches2[1]}`;
   }

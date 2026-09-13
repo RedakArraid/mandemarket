@@ -1,5 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ ERREUR CRITIQUE: Le script reset:demo est formellement INTERDIT en environnement de PRODUCTION.');
+  process.exit(1);
+}
+
 const db = new PrismaClient();
 
 async function main() {
@@ -324,8 +330,8 @@ async function main() {
         orderId: order1.id,
         productId: createdProducts[0].id,
         quantity: 1,
-        unitPrice: 150000,
-        totalPrice: 150000
+        unitPrice: 10000000,
+        totalPrice: 10000000
       }
     });
 
@@ -335,10 +341,10 @@ async function main() {
         customerId: customers[1].id,
         userId: admin.id,
         status: 'PENDING',
-        totalAmount: 130000, // 130.00€
+        totalAmount: 6400000, // 80,000 FCFA - 20% (16,000 FCFA) = 64,000 FCFA
         taxAmount: 0,
         shippingCost: 0,
-        discountAmount: 20000, // 20.00€ de réduction
+        discountAmount: 1600000, // 16,000 FCFA de réduction (20%)
         promotionCode: 'WELCOME20'
       }
     });
@@ -350,8 +356,8 @@ async function main() {
         orderId: order2.id,
         productId: createdProducts[1].id,
         quantity: 1,
-        unitPrice: 125000,
-        totalPrice: 125000
+        unitPrice: 8000000,
+        totalPrice: 8000000
       }
     });
 
@@ -361,7 +367,7 @@ async function main() {
       db.payment.create({
         data: {
           orderId: order1.id,
-          amount: 150000,
+          amount: 10000000,
           method: 'CARD',
           status: 'COMPLETED',
           transactionId: 'txn_1234567890',
@@ -371,7 +377,7 @@ async function main() {
       db.payment.create({
         data: {
           orderId: order2.id,
-          amount: 130000,
+          amount: 6400000,
           method: 'BANK_TRANSFER',
           status: 'PENDING',
           transactionId: 'txn_0987654321',
@@ -442,8 +448,8 @@ async function main() {
     console.log(`   🔔 Notifications: 2`);
     
     console.log('\n🔑 Compte admin créé :');
-    console.log(`   Email: admin@mandemarket.com`);
-    console.log(`   Mot de passe: admin123`);
+    console.log(`   Email: ${admin.email}`);
+    console.log(`   Mot de passe: ${adminPasswordPlain}`);
     
     console.log('\n🚀 Vous pouvez maintenant :');
     console.log(`   • Vous connecter sur: http://localhost:3000/admin/login`);

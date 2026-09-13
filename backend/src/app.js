@@ -163,8 +163,10 @@ app.use('*', (req, res) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`MandeMarket Backend v2.0 — port ${PORT} (${process.env.NODE_ENV || 'development'})`);
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`MandeMarket Backend v2.0 — port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+  });
+}
 
 module.exports = app;
