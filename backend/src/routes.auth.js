@@ -346,4 +346,35 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// POST /api/auth/change-password
+router.post('/change-password', requireAuth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'L’ancien mot de passe et un nouveau mot de passe d’au moins 8 caractères sont requis.' });
+    }
+
+    const user = await db.user.findUnique({ where: { id: req.user.userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) {
+      return res.status(401).json({ error: 'L’ancien mot de passe est incorrect.' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await db.user.update({
+      where: { id: user.id },
+      data: { password: hashed },
+    });
+
+    res.json({ success: true, message: 'Mot de passe mis à jour avec succès.' });
+  } catch (err) {
+    console.error('Erreur change-password:', err);
+    res.status(500).json({ error: 'Erreur lors du changement de mot de passe.' });
+  }
+});
+
 module.exports = router;

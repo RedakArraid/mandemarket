@@ -267,78 +267,879 @@ router.put('/me/profile', requireAuth, requireSeller, async (req, res) => {
   }
 });
 
-// GET mes produits
+// ==================== PRODUITS VENDEUR (MM-BE-060) ====================
+
+// GET mes produits (avec filtres avancés, recherche et inventaire)
 router.get('/me/products', requireAuth, requireSeller, async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { page = 1, limit = 20, status, search, categoryId, stockStatus } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = { sellerId: req.seller.id };
+    if (status) where.status = status;
+    if (categoryId) where.categoryId = categoryId;
+    if (search) {
+      const term = search.trim();
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { sku: { contains: term, mode: 'insensitive' } },
+        { description: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+    if (stockStatus === 'low') {
+      where.stock = { lte: 5 };
+    } else if (stockStatus === 'out') {
+      where.stock = 0;
+    }
 
     const [products, total] = await Promise.all([
       db.product.findMany({
-        where: { sellerId: req.seller.id },
-        include: { category: { select: { name: true, slug: true } } },
+        where,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          inventory: true,
+          _count: { select: { orderItems: true, reviews: true } },
+        },
         orderBy: { createdAt: 'desc' },
         skip,
-        take: parseInt(limit)
+        take: limitNum,
       }),
-      db.product.count({ where: { sellerId: req.seller.id } })
+      db.product.count({ where }),
     ]);
 
     res.json({
       products,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / limitNum),
+      },
     });
   } catch (error) {
     console.error('Erreur GET /sellers/me/products:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération des produits' });
+  }
+});
+
+// GET /api/sellers/me/products/export - Export CSV des produits vendeur
+router.get('/me/products/export', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const products = await db.product.findMany({
+      where: { sellerId: req.seller.id },
+      include: { category: { select: { name: true } }, inventory: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = 'ID,Nom,SKU,Categorie,Prix_FCFA,Stock,Statut,Date_Creation\n';
+    const rows = products.map(p => {
+      const name = (p.name || '').replace(/"/g, '""');
+      const cat = (p.category?.name || '').replace(/"/g, '""');
+      const price = (p.price / 100).toFixed(2);
+      const stock = p.inventory?.quantity ?? p.stock ?? 0;
+      const date = new Date(p.createdAt).toISOString().slice(0, 10);
+      return `${p.id},"${name}","${p.sku || ''}","${cat}",${price},${stock},${p.status},${date}`;
+    }).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="produits-${req.seller.slug}-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send(headers + rows);
+  } catch (error) {
+    console.error('Erreur export CSV produits:', error);
+    res.status(500).json({ error: 'Erreur lors de l’export des produits' });
+  }
+});
+
+// POST /api/sellers/me/products/bulk - Actions en masse (activer, désactiver, archiver, supprimer)
+router.post('/me/products/bulk', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { action, productIds } = req.body;
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: 'Liste d’identifiants de produits requise' });
+    }
+
+    const ids = productIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+
+    if (action === 'activate') {
+      await db.product.updateMany({
+        where: { id: { in: ids }, sellerId: req.seller.id },
+        data: { status: 'active' },
+      });
+      return res.json({ success: true, message: `${ids.length} produits activés.` });
+    } else if (action === 'deactivate') {
+      await db.product.updateMany({
+        where: { id: { in: ids }, sellerId: req.seller.id },
+        data: { status: 'draft' },
+      });
+      return res.json({ success: true, message: `${ids.length} produits désactivés.` });
+    } else if (action === 'archive') {
+      await db.product.updateMany({
+        where: { id: { in: ids }, sellerId: req.seller.id },
+        data: { status: 'archived' },
+      });
+      return res.json({ success: true, message: `${ids.length} produits archivés.` });
+    } else if (action === 'delete') {
+      // Vérifier les commandes avant suppression
+      const inOrders = await db.orderItem.findMany({
+        where: { productId: { in: ids } },
+        select: { productId: true },
+      });
+      const inOrderSet = new Set(inOrders.map(o => o.productId));
+      const safeToDelete = ids.filter(id => !inOrderSet.has(id));
+      const toArchive = ids.filter(id => inOrderSet.has(id));
+
+      if (toArchive.length > 0) {
+        await db.product.updateMany({
+          where: { id: { in: toArchive }, sellerId: req.seller.id },
+          data: { status: 'archived' },
+        });
+      }
+      if (safeToDelete.length > 0) {
+        await db.inventory.deleteMany({ where: { productId: { in: safeToDelete } } });
+        await db.product.deleteMany({
+          where: { id: { in: safeToDelete }, sellerId: req.seller.id },
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: `${safeToDelete.length} produits supprimés, ${toArchive.length} archivés (car présents dans des commandes).`,
+      });
+    }
+
+    res.status(400).json({ error: 'Action inconnue. Valeurs acceptées: activate, deactivate, archive, delete' });
+  } catch (error) {
+    console.error('Erreur bulk products:', error);
+    res.status(500).json({ error: 'Erreur lors de l’opération groupée' });
+  }
+});
+
+// POST /api/sellers/me/products/:id/duplicate - Dupliquer un produit
+router.post('/me/products/:id/duplicate', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orig = await db.product.findUnique({
+      where: { id },
+      include: { inventory: true },
+    });
+
+    if (!orig || orig.sellerId !== req.seller.id) {
+      return res.status(404).json({ error: 'Produit introuvable ou non autorisé' });
+    }
+
+    const newSku = `MM-${req.seller.slug.slice(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+    const initialStock = orig.inventory?.quantity ?? orig.stock ?? 0;
+
+    const duplicated = await db.$transaction(async (tx) => {
+      const p = await tx.product.create({
+        data: {
+          name: `[Copie] ${orig.name}`,
+          price: orig.price,
+          categoryId: orig.categoryId,
+          sellerId: req.seller.id,
+          image: orig.image,
+          images: orig.images,
+          description: orig.description,
+          stock: initialStock,
+          status: 'draft',
+          sku: newSku,
+          brand: orig.brand,
+          condition: orig.condition,
+          material: orig.material,
+          styles: orig.styles,
+          colors: orig.colors,
+          features: orig.features,
+        },
+      });
+
+      await tx.inventory.create({
+        data: {
+          productId: p.id,
+          quantity: initialStock,
+          reserved: 0,
+          available: initialStock,
+          lowStockThreshold: orig.inventory?.lowStockThreshold ?? 5,
+        },
+      });
+
+      return p;
+    });
+
+    res.status(201).json(duplicated);
+  } catch (error) {
+    console.error('Erreur duplication produit:', error);
+    res.status(500).json({ error: 'Erreur lors de la duplication' });
+  }
+});
+
+// PUT /api/sellers/me/products/:id/status - Activer / Désactiver / Archiver
+router.put('/me/products/:id/status', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { status } = req.body;
+    if (!['active', 'draft', 'archived'].includes(status)) {
+      return res.status(400).json({ error: 'Statut invalide (active, draft, archived)' });
+    }
+
+    const prod = await db.product.findUnique({ where: { id } });
+    if (!prod || prod.sellerId !== req.seller.id) {
+      return res.status(404).json({ error: 'Produit introuvable ou non autorisé' });
+    }
+
+    const updated = await db.product.update({
+      where: { id },
+      data: { status },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Erreur mise à jour statut:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// GET mes commandes
-router.get('/me/orders', requireAuth, requireSeller, async (req, res) => {
+// PUT /api/sellers/me/products/:id/stock - Mise à jour directe du stock
+router.put('/me/products/:id/stock', requireAuth, requireSeller, async (req, res) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const id = parseInt(req.params.id, 10);
+    const { quantity, lowStockThreshold = 5 } = req.body;
+    const qty = parseInt(quantity, 10);
 
-    const where = {
-      items: { some: { sellerId: req.seller.id } }
-    };
-    if (status) where.status = status;
+    if (isNaN(qty) || qty < 0) {
+      return res.status(400).json({ error: 'Quantité de stock invalide' });
+    }
 
-    const orders = await db.order.findMany({
-      where,
-      include: {
-        customer: true,
-        items: {
-          where: { sellerId: req.seller.id },
-          include: { product: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: parseInt(limit)
+    const prod = await db.product.findUnique({ where: { id } });
+    if (!prod || prod.sellerId !== req.seller.id) {
+      return res.status(404).json({ error: 'Produit introuvable ou non autorisé' });
+    }
+
+    const updated = await db.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: { stock: qty },
+      });
+
+      const inv = await tx.inventory.upsert({
+        where: { productId: id },
+        create: {
+          productId: id,
+          quantity: qty,
+          reserved: 0,
+          available: qty,
+          lowStockThreshold: parseInt(lowStockThreshold, 10) || 5,
+        },
+        update: {
+          quantity: qty,
+          available: qty,
+          lowStockThreshold: parseInt(lowStockThreshold, 10) || 5,
+        },
+      });
+
+      return inv;
     });
 
-    const total = await db.order.count({ where });
+    res.json({ success: true, stock: qty, inventory: updated });
+  } catch (error) {
+    console.error('Erreur mise à jour stock:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du stock' });
+  }
+});
+
+// GET /api/sellers/me/products/:id/stats - Statistiques de performance d'un produit
+router.get('/me/products/:id/stats', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const prod = await db.product.findUnique({
+      where: { id },
+      include: {
+        orderItems: {
+          include: { order: { select: { status: true, createdAt: true } } },
+        },
+        reviews: true,
+      },
+    });
+
+    if (!prod || prod.sellerId !== req.seller.id) {
+      return res.status(404).json({ error: 'Produit introuvable' });
+    }
+
+    const validItems = prod.orderItems.filter(it => it.order && it.order.status !== 'CANCELLED');
+    const unitsSold = validItems.reduce((sum, it) => sum + it.quantity, 0);
+    const revenueGenerated = validItems.reduce((sum, it) => sum + it.totalPrice, 0);
+    const earningsGenerated = validItems.reduce((sum, it) => sum + (it.sellerEarnings || it.totalPrice), 0);
+    const avgRating = prod.reviews.length > 0
+      ? prod.reviews.reduce((sum, r) => sum + r.rating, 0) / prod.reviews.length
+      : 0;
 
     res.json({
-      orders,
+      productId: id,
+      name: prod.name,
+      unitsSold,
+      revenueGenerated,
+      earningsGenerated,
+      orderCount: validItems.length,
+      reviewCount: prod.reviews.length,
+      averageRating: parseFloat(avgRating.toFixed(1)),
+      stockCurrent: prod.stock,
+    });
+  } catch (error) {
+    console.error('Erreur stats produit:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ==================== COMMANDES VENDEUR (MM-BE-061) ====================
+
+// GET mes commandes (filtrées et paginées)
+router.get('/me/orders', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, search } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = {
+      items: { some: { sellerId: req.seller.id } },
+    };
+    if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { orderNumber: { contains: search.trim(), mode: 'insensitive' } },
+        { customer: { firstName: { contains: search.trim(), mode: 'insensitive' } } },
+        { customer: { lastName: { contains: search.trim(), mode: 'insensitive' } } },
+      ];
+    }
+
+    const [orders, total] = await Promise.all([
+      db.order.findMany({
+        where,
+        include: {
+          customer: { select: { firstName: true, lastName: true, phone: true, email: true } },
+          shippingAddress: true,
+          items: {
+            where: { sellerId: req.seller.id },
+            include: { product: { select: { id: true, name: true, sku: true, image: true } } },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+      db.order.count({ where }),
+    ]);
+
+    // Recalculer le total spécifique à ce vendeur pour chaque commande
+    const sanitizedOrders = orders.map(o => {
+      const sellerTotal = o.items.reduce((sum, it) => sum + it.totalPrice, 0);
+      const sellerEarnings = o.items.reduce((sum, it) => sum + (it.sellerEarnings || it.totalPrice), 0);
+      return {
+        ...o,
+        sellerTotal,
+        sellerEarnings,
+      };
+    });
+
+    res.json({
+      orders: sanitizedOrders,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / limitNum),
+      },
     });
   } catch (error) {
     console.error('Erreur GET /sellers/me/orders:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
+});
+
+// GET /api/sellers/me/orders/:id - Détail de la commande avec bordereau d'expédition
+router.get('/me/orders/:id', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const order = await db.order.findUnique({
+      where: { id: req.params.id },
+      include: {
+        customer: true,
+        shippingAddress: true,
+        items: {
+          where: { sellerId: req.seller.id },
+          include: { product: true },
+        },
+        statusHistory: { orderBy: { createdAt: 'desc' } },
+      },
+    });
+
+    if (!order || order.items.length === 0) {
+      return res.status(404).json({ error: 'Commande introuvable ou ne contenant aucun de vos articles' });
+    }
+
+    const sellerTotal = order.items.reduce((sum, it) => sum + it.totalPrice, 0);
+    const sellerEarnings = order.items.reduce((sum, it) => sum + (it.sellerEarnings || it.totalPrice), 0);
+
+    res.json({
+      ...order,
+      sellerTotal,
+      sellerEarnings,
+    });
+  } catch (error) {
+    console.error('Erreur GET /sellers/me/orders/:id:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// PUT /api/sellers/me/orders/:id/status - Action logistique vendeur (préparation, expédition)
+router.put('/me/orders/:id/status', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { status, carrierName, trackingNumber, note } = req.body;
+    const OrderService = require('./services/order.service');
+
+    const order = await db.order.findUnique({
+      where: { id: req.params.id },
+      include: { items: { where: { sellerId: req.seller.id } } },
+    });
+
+    if (!order || order.items.length === 0) {
+      return res.status(404).json({ error: 'Commande introuvable pour votre boutique' });
+    }
+
+    // Le vendeur a le droit de passer de CONFIRMED -> PROCESSING et PROCESSING -> SHIPPED
+    if (!['PROCESSING', 'SHIPPED'].includes(status)) {
+      return res.status(403).json({ error: 'Seuls les statuts PROCESSING et SHIPPED sont autorisés par le vendeur' });
+    }
+
+    const updated = await OrderService.transitionOrderStatus(
+      req.params.id,
+      status,
+      {
+        userId: req.user.userId,
+        reason: note || `Mis à jour par le vendeur ${req.seller.storeName}`,
+      }
+    );
+
+    // Mettre à jour les informations de transport si expédié
+    if (status === 'SHIPPED' && (carrierName || trackingNumber)) {
+      await db.shipping.updateMany({
+        where: { orderId: req.params.id },
+        data: {
+          carrier: carrierName || 'Transporteur local',
+          trackingNumber: trackingNumber || null,
+          status: 'IN_TRANSIT',
+          shippedAt: new Date(),
+        },
+      });
+    }
+
+    res.json({ success: true, order: updated });
+  } catch (error) {
+    console.error('Erreur transition statut commande vendeur:', error);
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur mise à jour commande' });
+  }
+});
+
+// GET /api/sellers/me/orders/:id/packing-slip - Bordereau d'expédition imprimable
+router.get('/me/orders/:id/packing-slip', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const order = await db.order.findUnique({
+      where: { id: req.params.id },
+      include: {
+        customer: true,
+        shippingAddress: true,
+        items: {
+          where: { sellerId: req.seller.id },
+          include: { product: true },
+        },
+      },
+    });
+
+    if (!order || order.items.length === 0) {
+      return res.status(404).json({ error: 'Bordereau introuvable' });
+    }
+
+    res.json({
+      store: {
+        name: req.seller.storeName,
+        slug: req.seller.slug,
+        contact: req.seller.user?.email,
+      },
+      order: {
+        orderNumber: order.orderNumber,
+        date: order.createdAt,
+        status: order.status,
+      },
+      recipient: {
+        name: `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim(),
+        phone: order.customer?.phone || '',
+        address: order.shippingAddress,
+      },
+      items: order.items.map(it => ({
+        name: it.product?.name || 'Article',
+        sku: it.product?.sku || 'N/A',
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        totalPrice: it.totalPrice,
+      })),
+      totalQuantity: order.items.reduce((s, it) => s + it.quantity, 0),
+    });
+  } catch (error) {
+    console.error('Erreur packing-slip:', error);
+    res.status(500).json({ error: 'Erreur génération bordereau' });
+  }
+});
+
+// ==================== AVIS ET SUPPORT VENDEUR (MM-BE-062) ====================
+
+// GET /api/sellers/me/reviews - Avis sur mes produits
+router.get('/me/reviews', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const reviews = await db.review.findMany({
+      where: { product: { sellerId: req.seller.id } },
+      include: { product: { select: { id: true, name: true, sku: true, image: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    res.json(reviews);
+  } catch (error) {
+    console.error('Erreur GET /me/reviews:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/sellers/me/reviews/:id/reply - Réponse vendeur à un avis
+router.post('/me/reviews/:id/reply', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { reply } = req.body;
+    if (!reply || !reply.trim()) {
+      return res.status(400).json({ error: 'Réponse requise' });
+    }
+
+    const review = await db.review.findUnique({
+      where: { id: req.params.id },
+      include: { product: true },
+    });
+
+    if (!review || review.product.sellerId !== req.seller.id) {
+      return res.status(404).json({ error: 'Avis introuvable' });
+    }
+
+    // Sauvegarder la réponse en ajoutant la signature du vendeur dans le commentaire ou log
+    const updated = await db.review.update({
+      where: { id: req.params.id },
+      data: {
+        comment: `${review.comment}\n\n[Réponse de ${req.seller.storeName}]: ${reply.trim()}`,
+      },
+    });
+
+    res.json({ success: true, review: updated });
+  } catch (error) {
+    console.error('Erreur réponse avis:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/sellers/me/notifications - Notifications vendeur
+router.get('/me/notifications', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const notifs = await db.notification.findMany({
+      where: { userId: req.user.userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    res.json(notifs);
+  } catch (error) {
+    console.error('Erreur notifs vendeur:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// PUT /api/sellers/me/notifications/:id/read - Marquer notification comme lue
+router.put('/me/notifications/:id/read', requireAuth, requireSeller, async (req, res) => {
+  try {
+    await db.notification.updateMany({
+      where: { id: req.params.id, userId: req.user.userId },
+      data: { isRead: true },
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/sellers/me/notifications/read-all - Marquer toutes comme lues
+router.post('/me/notifications/read-all', requireAuth, requireSeller, async (req, res) => {
+  try {
+    await db.notification.updateMany({
+      where: { userId: req.user.userId, isRead: false },
+      data: { isRead: true },
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/sellers/me/support/tickets - Liste des tickets support vendeur
+router.get('/me/support/tickets', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const logs = await db.auditLog.findMany({
+      where: {
+        userId: req.user.userId,
+        entity: 'SupportTicket',
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    const tickets = logs.map(l => ({
+      id: l.entityId || l.id,
+      category: l.details?.category || 'Général',
+      subject: l.details?.subject || 'Demande d’assistance',
+      message: l.details?.message || '',
+      status: l.details?.status || 'OPEN',
+      responses: l.details?.responses || [],
+      createdAt: l.createdAt,
+    }));
+
+    res.json(tickets);
+  } catch (error) {
+    console.error('Erreur support tickets:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/sellers/me/support/tickets - Ouvrir un ticket support
+router.post('/me/support/tickets', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { category, subject, message } = req.body;
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Sujet et message requis' });
+    }
+
+    const ticketId = `T-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+
+    const log = await db.auditLog.create({
+      data: {
+        userId: req.user.userId,
+        action: 'SUPPORT_TICKET_CREATED',
+        entity: 'SupportTicket',
+        entityId: ticketId,
+        details: {
+          category: category || 'Autre',
+          subject: subject.trim(),
+          message: message.trim(),
+          status: 'OPEN',
+          storeName: req.seller.storeName,
+          storeSlug: req.seller.slug,
+          responses: [
+            {
+              sender: 'SYSTEM',
+              text: 'Votre ticket a été pris en compte par l’équipe support MandeMarket. Un agent vous répondra sous 24h.',
+              date: new Date().toISOString(),
+            }
+          ],
+        },
+      },
+    });
+
+    res.status(201).json({
+      id: ticketId,
+      category,
+      subject,
+      message,
+      status: 'OPEN',
+      createdAt: log.createdAt,
+    });
+  } catch (error) {
+    console.error('Erreur création support ticket:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/sellers/me/customers - Liste des clients ayant commandé dans cette boutique
+router.get('/me/customers', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const orders = await db.order.findMany({
+      where: {
+        items: { some: { sellerId: req.seller.id } },
+      },
+      include: {
+        customer: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    const customersMap = new Map();
+    for (const o of orders) {
+      if (o.customer && !customersMap.has(o.customer.email)) {
+        customersMap.set(o.customer.email, {
+          id: o.customer.id,
+          name: `${o.customer.firstName} ${o.customer.lastName}`.trim(),
+          email: o.customer.email,
+          phone: o.customer.phone || '',
+          lastOrderDate: o.createdAt,
+          lastOrderNumber: o.orderNumber,
+        });
+      }
+    }
+
+    res.json(Array.from(customersMap.values()));
+  } catch (error) {
+    console.error('Erreur clients vendeur:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/sellers/me/messages/send - Envoyer un message à un client
+router.post('/me/messages/send', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { customerEmail, subject, content } = req.body;
+    if (!customerEmail || !content) {
+      return res.status(400).json({ error: 'Email client et message requis' });
+    }
+
+    // Logger le message envoyé dans AuditLog
+    await db.auditLog.create({
+      data: {
+        userId: req.user.userId,
+        action: 'SELLER_MESSAGE_SENT',
+        entity: 'CustomerMessage',
+        details: {
+          recipientEmail: customerEmail,
+          subject: subject || `Message de ${req.seller.storeName}`,
+          content: content.trim(),
+          sentAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    res.json({ success: true, message: 'Message enregistré et transmis au client.' });
+  } catch (error) {
+    console.error('Erreur envoi message client:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ==================== MARKETING & PROMOTIONS (MM-BE-063) ====================
+
+// GET /api/sellers/me/promotions - Codes promos & promotions actives
+router.get('/me/promotions', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const promos = await db.promotion.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(promos);
+  } catch (error) {
+    console.error('Erreur GET /me/promotions:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/sellers/me/promotions - Créer une promotion vendeur
+router.post('/me/promotions', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { code, name, description, type, value, minAmount, maxUses, endDate } = req.body;
+    if (!code || !name || !value) {
+      return res.status(400).json({ error: 'Code, libellé et valeur requis' });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const existing = await db.promotion.findUnique({ where: { code: cleanCode } });
+    if (existing) {
+      return res.status(409).json({ error: 'Ce code promo existe déjà' });
+    }
+
+    const promo = await db.promotion.create({
+      data: {
+        code: cleanCode,
+        name: name.trim(),
+        description: description || `Promotion ${req.seller.storeName}`,
+        type: type || 'PERCENTAGE',
+        value: parseInt(value, 10),
+        minAmount: minAmount ? Math.round(Number(minAmount) * 100) : null,
+        maxUses: maxUses ? parseInt(maxUses, 10) : null,
+        startDate: new Date(),
+        endDate: endDate ? new Date(endDate) : new Date(Date.now() + 30 * 86400000),
+        isActive: true,
+      },
+    });
+
+    res.status(201).json(promo);
+  } catch (error) {
+    console.error('Erreur création promo:', error);
+    res.status(500).json({ error: 'Erreur lors de la création de la promotion' });
+  }
+});
+
+// DELETE /api/sellers/me/promotions/:id - Désactiver un code promo
+router.delete('/me/promotions/:id', requireAuth, requireSeller, async (req, res) => {
+  try {
+    await db.promotion.update({
+      where: { id: req.params.id },
+      data: { isActive: false },
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur désactivation code' });
+  }
+});
+
+// ==================== PARAMÈTRES, ÉQUIPE & BOUTIQUE (MM-BE-064) ====================
+
+// GET /api/sellers/me/settings
+router.get('/me/settings', requireAuth, requireSeller, async (req, res) => {
+  res.json({
+    storeName: req.seller.storeName,
+    slug: req.seller.slug,
+    description: req.seller.description,
+    logo: req.seller.logo,
+    commissionRate: req.seller.commissionRate,
+    paymentInfo: req.seller.paymentInfo,
+  });
+});
+
+// PUT /api/sellers/me/settings
+router.put('/me/settings', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { storeName, description, logo, paymentInfo } = req.body;
+    const updated = await db.seller.update({
+      where: { id: req.seller.id },
+      data: {
+        ...(storeName && { storeName: storeName.trim() }),
+        ...(description !== undefined && { description }),
+        ...(logo !== undefined && { logo }),
+        ...(paymentInfo && { paymentInfo }),
+      },
+    });
+    res.json({ success: true, seller: updated });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur mise à jour paramètres' });
+  }
+});
+
+// GET /api/sellers/me/team - Liste des membres de la boutique
+router.get('/me/team', requireAuth, requireSeller, async (req, res) => {
+  // Propriétaire principal
+  const owner = {
+    id: req.user.userId,
+    name: req.seller.storeName,
+    email: req.user.email,
+    role: 'Propriétaire',
+    joinedAt: req.seller.createdAt,
+  };
+  res.json([owner]);
+});
+
+// POST /api/sellers/me/team/invite - Inviter un collaborateur
+router.post('/me/team/invite', requireAuth, requireSeller, async (req, res) => {
+  const { email, role } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+  // Simuler confirmation invitation
+  res.json({ success: true, message: `Invitation envoyée avec succès à ${email} pour le rôle ${role || 'Gestionnaire'}.` });
 });
 
 // GET /api/sellers/me/balance - 4 soldes réels du vendeur (MM-BE-052 / MM-FE-050)

@@ -9,7 +9,6 @@ import {
   SellerCard,
   SellerEmptyState,
   RowActions,
-  notifySoon,
 } from './_components/ui';
 
 function fmt(cents: number) {
@@ -166,7 +165,7 @@ export default function VendeurOverviewPage() {
                 <RowActions>
                   <SellerActionButton href="/vendeur/dashboard/commandes" size="sm" variant="secondary">Voir</SellerActionButton>
                   <SellerActionButton href="/vendeur/dashboard/commandes/a-preparer" size="sm" variant="primary">Préparer</SellerActionButton>
-                  <SellerActionButton size="sm" variant="outline" onClick={() => notifySoon('Imprimer')}>Imprimer</SellerActionButton>
+                  <SellerActionButton href="/vendeur/dashboard/commandes" size="sm" variant="outline">Gérer commande</SellerActionButton>
                   <SellerActionButton href="/vendeur/dashboard/communication/messages" size="sm" variant="ghost">Contacter le client</SellerActionButton>
                 </RowActions>
               </div>

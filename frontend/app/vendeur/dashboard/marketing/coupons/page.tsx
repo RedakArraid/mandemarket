@@ -8,8 +8,9 @@ import {
   SellerHeaderActions,
   RowActions,
   FilterChips,
-  notifySoon,
 } from '../../_components/ui';
+import { SellerService } from '../../../../config/api';
+import { Spinner } from '../../_components/sections';
 
 export type CouponTypeId =
   | 'PERCENTAGE'
@@ -105,113 +106,8 @@ const COUPON_TYPES: {
   },
 ];
 
-const STORAGE_KEY = 'mandin_seller_coupons_v1';
-
-const SEED: Coupon[] = [
-  {
-    id: '1',
-    code: 'PROMO20',
-    type: 'PERCENTAGE',
-    value: 20,
-    minAmount: 0,
-    maxUses: 100,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 12,
-  },
-  {
-    id: '2',
-    code: 'CADEAU5000',
-    type: 'FIXED_AMOUNT',
-    value: 5000,
-    minAmount: 20000,
-    maxUses: 50,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 3,
-  },
-  {
-    id: '3',
-    code: 'LIVRAISON0',
-    type: 'FREE_SHIPPING',
-    value: 0,
-    minAmount: 15000,
-    maxUses: 200,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 41,
-  },
-  {
-    id: '4',
-    code: 'SAC30',
-    type: 'PRODUCT_PERCENTAGE',
-    value: 30,
-    productIds: 'Sac cuir / Sacs premium',
-    minAmount: 0,
-    maxUses: 30,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 5,
-  },
-  {
-    id: '5',
-    code: 'MODE15',
-    type: 'CATEGORY_PERCENTAGE',
-    value: 15,
-    categoryName: 'Mode',
-    minAmount: 0,
-    maxUses: 80,
-    startDate: '',
-    endDate: '',
-    status: 'inactive',
-    uses: 0,
-  },
-  {
-    id: '6',
-    code: '2PLUS1',
-    type: 'BUY_X_GET_Y',
-    value: 0,
-    buyQty: 2,
-    getQty: 1,
-    minAmount: 0,
-    maxUses: 40,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 8,
-  },
-  {
-    id: '7',
-    code: 'BIENVENUE10',
-    type: 'FIRST_ORDER',
-    value: 10,
-    minAmount: 0,
-    maxUses: 500,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 67,
-  },
-  {
-    id: '8',
-    code: 'FAN20',
-    type: 'SUBSCRIBERS',
-    value: 20,
-    minAmount: 0,
-    maxUses: 150,
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    uses: 22,
-  },
-];
-
 function typeMeta(id: CouponTypeId) {
-  return COUPON_TYPES.find((t) => t.id === id)!;
+  return COUPON_TYPES.find((t) => t.id === id) || COUPON_TYPES[0];
 }
 
 function formatEffect(c: Coupon) {
@@ -252,29 +148,44 @@ function emptyForm(type: CouponTypeId = 'PERCENTAGE') {
 
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState('Tous');
   const [form, setForm] = useState(emptyForm());
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const loadPromotions = async () => {
+    try {
+      setLoading(true);
+      const list = await SellerService.getMyPromotions();
+      if (Array.isArray(list)) {
+        setCoupons(
+          list.map((p: any) => ({
+            id: p.id,
+            code: p.code,
+            type: (p.type as CouponTypeId) || 'PERCENTAGE',
+            value: p.value,
+            minAmount: Math.round((p.minAmount || 0) / 100),
+            maxUses: p.maxUses || 100,
+            startDate: p.startDate ? p.startDate.slice(0, 10) : '',
+            endDate: p.endDate ? p.endDate.slice(0, 10) : '',
+            status: p.isActive ? 'active' : 'inactive',
+            uses: p.usedCount || 0,
+          }))
+        );
+      }
+    } catch (err: any) {
+      console.error('Erreur chargement promotions:', err);
+      setFeedback({ type: 'error', message: 'Erreur lors du chargement des promotions.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setCoupons(JSON.parse(raw));
-      } else {
-        setCoupons(SEED);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED));
-      }
-    } catch {
-      setCoupons(SEED);
-    }
+    loadPromotions();
   }, []);
-
-  const persist = (next: Coupon[]) => {
-    setCoupons(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  };
 
   const filtered = useMemo(() => {
     if (filter === 'Tous') return coupons;
@@ -326,7 +237,7 @@ export default function CouponsPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.code.trim()) {
       alert('Le code est obligatoire');
@@ -345,54 +256,52 @@ export default function CouponsPage() {
       return;
     }
 
-    const payload: Coupon = {
-      id: editingId || String(Date.now()),
-      code: form.code.trim().toUpperCase(),
-      type: form.type,
-      value: form.value,
-      buyQty: form.buyQty,
-      getQty: form.getQty,
-      productIds: form.productIds,
-      categoryName: form.categoryName,
-      minAmount: form.minAmount,
-      maxUses: form.maxUses,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      status: 'active',
-      uses: editingId ? coupons.find((c) => c.id === editingId)?.uses || 0 : 0,
-    };
-
-    if (editingId) {
-      persist(coupons.map((c) => (c.id === editingId ? payload : c)));
-    } else {
-      if (coupons.some((c) => c.code === payload.code)) {
-        alert('Ce code existe déjà');
-        return;
-      }
-      persist([payload, ...coupons]);
+    try {
+      await SellerService.createPromotion({
+        code: form.code.trim().toUpperCase(),
+        name: `Promotion ${form.code}`,
+        type: form.type === 'FREE_SHIPPING' ? 'FREE_SHIPPING' : (form.type === 'FIXED_AMOUNT' ? 'FIXED_AMOUNT' : 'PERCENTAGE'),
+        value: Number(form.value) || 0,
+        minAmount: form.minAmount ? Math.round(Number(form.minAmount) * 100) : undefined,
+        maxUses: form.maxUses ? Number(form.maxUses) : undefined,
+        endDate: form.endDate || undefined,
+      });
+      setFeedback({ type: 'success', message: `Code promo ${form.code.toUpperCase()} activé avec succès.` });
+      setShow(false);
+      setEditingId(null);
+      await loadPromotions();
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors de la création de la promotion');
     }
-    setShow(false);
-    setEditingId(null);
   };
 
-  const setStatus = (id: string, status: CouponStatus) => {
-    persist(coupons.map((c) => (c.id === id ? { ...c, status } : c)));
+  const remove = async (id: string) => {
+    if (!confirm('Désactiver ce coupon ?')) return;
+    try {
+      await SellerService.deletePromotion(id);
+      setFeedback({ type: 'success', message: 'Coupon désactivé avec succès.' });
+      await loadPromotions();
+    } catch (err: any) {
+      alert('Erreur lors de la désactivation');
+    }
   };
 
-  const duplicate = (c: Coupon) => {
-    const copy: Coupon = {
-      ...c,
-      id: String(Date.now()),
-      code: `${c.code}-COPY`.slice(0, 20),
-      uses: 0,
-      status: 'inactive',
-    };
-    persist([copy, ...coupons]);
-  };
-
-  const remove = (id: string) => {
-    if (!confirm('Supprimer ce coupon ?')) return;
-    persist(coupons.filter((c) => c.id !== id));
+  const duplicate = async (c: Coupon) => {
+    const copyCode = `${c.code.slice(0, 8)}${Math.floor(Math.random() * 900 + 100)}`;
+    try {
+      await SellerService.createPromotion({
+        code: copyCode,
+        name: `Copie de ${c.code}`,
+        type: c.type === 'FREE_SHIPPING' ? 'FREE_SHIPPING' : (c.type === 'FIXED_AMOUNT' ? 'FIXED_AMOUNT' : 'PERCENTAGE'),
+        value: c.value,
+        minAmount: c.minAmount,
+        maxUses: c.maxUses,
+      });
+      setFeedback({ type: 'success', message: `Copie créée avec le code ${copyCode}.` });
+      await loadPromotions();
+    } catch (err: any) {
+      alert('Erreur lors de la duplication');
+    }
   };
 
   const needsValue =
@@ -649,27 +558,11 @@ export default function CouponsPage() {
                     </p>
                   </div>
                   <RowActions>
-                    <SellerActionButton size="sm" variant="primary" onClick={() => setStatus(c.id, 'active')}>
-                      Activer
-                    </SellerActionButton>
-                    <SellerActionButton size="sm" variant="secondary" onClick={() => setStatus(c.id, 'inactive')}>
-                      Désactiver
-                    </SellerActionButton>
-                    <SellerActionButton size="sm" variant="outline" onClick={() => openEdit(c)}>
-                      Modifier
-                    </SellerActionButton>
                     <SellerActionButton size="sm" variant="outline" onClick={() => duplicate(c)}>
                       Dupliquer
                     </SellerActionButton>
-                    <SellerActionButton
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => notifySoon(`Utilisations de ${c.code}`)}
-                    >
-                      Voir les utilisations
-                    </SellerActionButton>
                     <SellerActionButton size="sm" variant="danger" onClick={() => remove(c.id)}>
-                      Supprimer
+                      Désactiver
                     </SellerActionButton>
                   </RowActions>
                 </div>

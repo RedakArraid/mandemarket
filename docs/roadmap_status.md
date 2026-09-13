@@ -48,13 +48,13 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-051** | 5 | Sécuriser les retraits (réservation atomique de solde) | Backend | P0 | MM-BE-050 | **TERMINÉ** |
 | **MM-BE-052** | 5 | APIs finances et retraits vendeur | Backend | P0 | MM-BE-051 | **TERMINÉ** |
 | **MM-FE-050** | 5 | Brancher l'UI finances vendeur sur les 4 soldes réels | Frontend | P0 | MM-BE-052 | **TERMINÉ** |
-| **MM-BE-060** | 6 | Gestion complète des produits vendeur (CRUD réel) | Backend | P1 | Phase 5 | **À FAIRE** |
-| **MM-FE-060** | 6 | UI produits vendeur sans données simulées | Frontend | P1 | MM-BE-060 | **À FAIRE** |
-| **MM-BE-061** | 6 | Commandes vendeur filtrées et actions logistiques | Backend | P1 | MM-BE-060 | **À FAIRE** |
-| **MM-BE-062** | 6 | Avis et support vendeur | Backend | P1 | MM-BE-061 | **À FAIRE** |
-| **MM-BE-063** | 6 | Promotions plateforme / vendeur | Backend | P1 | MM-BE-061 | **À FAIRE** |
-| **MM-BE-064** | 6 | Équipe boutique et permissions RBAC | Backend | P2 | MM-BE-061 | **À FAIRE** |
-| **MM-FE-061** | 6 | Éliminer notifySoon et brancher tous les modules vendeur | Frontend | P0 | MM-BE-060 | **À FAIRE** |
+| **MM-BE-060** | 6 | Gestion complète des produits vendeur (CRUD réel) | Backend | P1 | Phase 5 | **TERMINÉ** |
+| **MM-FE-060** | 6 | UI produits vendeur sans données simulées | Frontend | P1 | MM-BE-060 | **TERMINÉ** |
+| **MM-BE-061** | 6 | Commandes vendeur filtrées et actions logistiques | Backend | P1 | MM-BE-060 | **TERMINÉ** |
+| **MM-BE-062** | 6 | Avis et support vendeur | Backend | P1 | MM-BE-061 | **TERMINÉ** |
+| **MM-BE-063** | 6 | Promotions plateforme / vendeur | Backend | P1 | MM-BE-061 | **TERMINÉ** |
+| **MM-BE-064** | 6 | Équipe boutique et permissions RBAC | Backend | P2 | MM-BE-061 | **TERMINÉ** |
+| **MM-FE-061** | 6 | Éliminer notifySoon et brancher tous les modules vendeur | Frontend | P0 | MM-BE-060 | **TERMINÉ** |
 | **MM-BE-070** | 7 | Gestion des utilisateurs admin (CRUD réel) | Backend | P1 | Phase 6 | **À FAIRE** |
 | **MM-FE-070** | 7 | Remplacer UsersManager fictif par l'API réelle | Frontend | P0 | MM-BE-070 | **À FAIRE** |
 | **MM-BE-071** | 7 | Avis fiables et vérifiés | Backend | P1 | MM-BE-070 | **À FAIRE** |

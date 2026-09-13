@@ -432,14 +432,151 @@ export class SellerService {
     return apiService.put('/api/sellers/me/profile', data);
   }
 
-  static async getMyProducts(page = 1) {
-    return apiService.get(`/api/sellers/me/products?page=${page}`);
+  static async getMyProducts(
+    pageOrOpts: number | { page?: number; limit?: number; status?: string; search?: string; categoryId?: string; stockStatus?: string } = 1,
+    limitArg = 20,
+    optsArg: { status?: string; search?: string; categoryId?: string; stockStatus?: string } = {}
+  ) {
+    let page = 1;
+    let limit = 20;
+    let opts: { status?: string; search?: string; categoryId?: string; stockStatus?: string } = {};
+
+    if (typeof pageOrOpts === 'object' && pageOrOpts !== null) {
+      page = pageOrOpts.page || 1;
+      limit = pageOrOpts.limit || 20;
+      opts = pageOrOpts;
+    } else {
+      page = typeof pageOrOpts === 'number' ? pageOrOpts : 1;
+      limit = limitArg;
+      opts = optsArg;
+    }
+
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (opts.status) q.set('status', opts.status);
+    if (opts.search) q.set('search', opts.search);
+    if (opts.categoryId) q.set('categoryId', opts.categoryId);
+    if (opts.stockStatus) q.set('stockStatus', opts.stockStatus);
+    return apiService.get(`/api/sellers/me/products?${q}`);
   }
 
-  static async getMyOrders(page = 1, status?: string) {
-    const q = new URLSearchParams({ page: String(page) });
+  static async downloadProductsCsv() {
+    const token = apiService.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/api/sellers/me/products/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error('Erreur lors du téléchargement du fichier CSV');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `produits-mandemarket-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  static async bulkProductsAction(action: 'activate' | 'deactivate' | 'archive' | 'delete', productIds: number[]) {
+    return apiService.post('/api/sellers/me/products/bulk', { action, productIds });
+  }
+
+  static async duplicateProduct(id: number) {
+    return apiService.post(`/api/sellers/me/products/${id}/duplicate`);
+  }
+
+  static async updateProductStatus(id: number, status: 'active' | 'draft' | 'archived') {
+    return apiService.put(`/api/sellers/me/products/${id}/status`, { status });
+  }
+
+  static async updateProductStock(id: number, quantity: number, lowStockThreshold = 5) {
+    return apiService.put(`/api/sellers/me/products/${id}/stock`, { quantity, lowStockThreshold });
+  }
+
+  static async getProductStats(id: number) {
+    return apiService.get(`/api/sellers/me/products/${id}/stats`);
+  }
+
+  static async getMyOrders(page = 1, limit = 20, status?: string, search?: string) {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (status) q.set('status', status);
+    if (search) q.set('search', search);
     return apiService.get(`/api/sellers/me/orders?${q}`);
+  }
+
+  static async getMyOrder(id: string) {
+    return apiService.get(`/api/sellers/me/orders/${id}`);
+  }
+
+  static async updateMyOrderStatus(id: string, status: string, details?: { carrierName?: string; trackingNumber?: string; note?: string }) {
+    return apiService.put(`/api/sellers/me/orders/${id}/status`, { status, ...details });
+  }
+
+  static async getPackingSlip(id: string) {
+    return apiService.get(`/api/sellers/me/orders/${id}/packing-slip`);
+  }
+
+  static async getMyReviews() {
+    return apiService.get('/api/sellers/me/reviews');
+  }
+
+  static async replyToReview(id: string, reply: string) {
+    return apiService.post(`/api/sellers/me/reviews/${id}/reply`, { reply });
+  }
+
+  static async getMyNotifications() {
+    return apiService.get('/api/sellers/me/notifications');
+  }
+
+  static async markNotificationRead(id: string) {
+    return apiService.put(`/api/sellers/me/notifications/${id}/read`);
+  }
+
+  static async markAllNotificationsRead() {
+    return apiService.post('/api/sellers/me/notifications/read-all');
+  }
+
+  static async getMySupportTickets() {
+    return apiService.get('/api/sellers/me/support/tickets');
+  }
+
+  static async createSupportTicket(data: { category: string; subject: string; message: string }) {
+    return apiService.post('/api/sellers/me/support/tickets', data);
+  }
+
+  static async getMyCustomers() {
+    return apiService.get('/api/sellers/me/customers');
+  }
+
+  static async sendMessageToCustomer(data: { customerEmail: string; subject?: string; content: string }) {
+    return apiService.post('/api/sellers/me/messages/send', data);
+  }
+
+  static async getMyPromotions() {
+    return apiService.get('/api/sellers/me/promotions');
+  }
+
+  static async createPromotion(data: any) {
+    return apiService.post('/api/sellers/me/promotions', data);
+  }
+
+  static async deletePromotion(id: string) {
+    return apiService.delete(`/api/sellers/me/promotions/${id}`);
+  }
+
+  static async getMySettings() {
+    return apiService.get('/api/sellers/me/settings');
+  }
+
+  static async updateMySettings(data: any) {
+    return apiService.put('/api/sellers/me/settings', data);
+  }
+
+  static async getMyTeam() {
+    return apiService.get('/api/sellers/me/team');
+  }
+
+  static async inviteTeamMember(email: string, role: string) {
+    return apiService.post('/api/sellers/me/team/invite', { email, role });
   }
 
   static async getMyEarnings() {
@@ -542,6 +679,22 @@ export class AuthService {
     } finally {
       apiService.removeAuthToken();
     }
+  }
+
+  static async changePassword(oldPassword: string, newPassword: string) {
+    return apiService.post('/api/auth/change-password', { oldPassword, newPassword });
+  }
+
+  static async logoutAllSessions() {
+    return apiService.post('/api/auth/logout-all');
+  }
+
+  static async getSessions() {
+    return apiService.get('/api/auth/sessions');
+  }
+
+  static async revokeSession(id: string) {
+    return apiService.delete(`/api/auth/sessions/${id}`);
   }
 
   static isAuthenticated(): boolean {
