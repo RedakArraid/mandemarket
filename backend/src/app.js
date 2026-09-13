@@ -60,6 +60,35 @@ app.use(
 );
 app.use(compression());
 
+const crypto = require('crypto');
+const db = require('./db');
+const RedisService = require('./services/redis.service');
+
+// Middleware RequestId & Observabilité (MM-INF-091)
+app.use((req, res, next) => {
+  req.id = req.headers['x-request-id'] || crypto.randomUUID();
+  res.setHeader('X-Request-ID', req.id);
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const durationMs = Date.now() - start;
+    if (process.env.LOG_FORMAT === 'json' || isProd) {
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        requestId: req.id,
+        method: req.method,
+        path: req.originalUrl,
+        status: res.statusCode,
+        durationMs,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        userId: req.user?.userId || req.user?.id || undefined,
+      }));
+    }
+  });
+  next();
+});
+
 const corsOptions = {
   origin: (origin, callback) => {
     if (isOriginAllowed(origin)) {
@@ -70,8 +99,8 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Length', 'Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Request-ID'],
+  exposedHeaders: ['Content-Length', 'Content-Type', 'X-Request-ID'],
   optionsSuccessStatus: 200,
   maxAge: 86400,
 };
@@ -144,6 +173,56 @@ app.get('/', (req, res) => {
   });
 });
 
+// Healthchecks (MM-INF-092)
+// Liveness probe (processus Node actif)
+app.get('/health/live', (req, res) => {
+  res.json({
+    status: 'LIVE',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Readiness probe (PostgreSQL + Redis)
+app.get('/health/ready', async (req, res) => {
+  let dbStatus = 'UNKNOWN';
+  let redisStatus = 'NOT_CONFIGURED';
+
+  try {
+    await db.$queryRaw`SELECT 1`;
+    dbStatus = 'CONNECTED';
+  } catch (err) {
+    dbStatus = 'DISCONNECTED';
+  }
+
+  if (process.env.REDIS_URL) {
+    const redisOk = await RedisService.ping();
+    redisStatus = redisOk ? 'CONNECTED' : 'DISCONNECTED';
+  }
+
+  const isHealthy = dbStatus === 'CONNECTED';
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'READY' : 'NOT_READY',
+    database: dbStatus,
+    redis: redisStatus,
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    version: '2.0.0',
+  });
+});
+
+// Statut des intégrations externes (sans exposer de secret)
+app.get('/health/external', (req, res) => {
+  res.json({
+    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+    cinetpay: Boolean(process.env.CINETPAY_API_KEY && process.env.CINETPAY_SITE_ID),
+    paystack: Boolean(process.env.PAYSTACK_SECRET_KEY),
+    cloudinary: Boolean(process.env.CLOUDINARY_CLOUD_NAME),
+    email: Boolean(process.env.SMTP_HOST || process.env.SENDGRID_API_KEY || process.env.RESEND_API_KEY),
+  });
+});
+
+// Health standard pour rétro-compatibilité Docker
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',

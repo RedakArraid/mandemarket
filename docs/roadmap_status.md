@@ -68,15 +68,15 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-FE-081** | 8 | UI expédition et suivi client/vendeur | Frontend | P1 | MM-BE-081 | **TERMINÉ** |
 | **MM-BE-082** | 8 | Endpoints contact et newsletter validés | Backend | P2 | MM-BE-080 | **TERMINÉ** |
 | **MM-FE-082** | 8 | Contenus publics, SEO et mentions légales | Frontend | P2 | MM-BE-082 | **TERMINÉ** |
-| **MM-QA-090** | 9 | Tests backend automatisés (couverture critique) | Backend | P0 | Toutes | **À FAIRE** |
-| **MM-QA-091** | 9 | Tests frontend automatisés (contextes, formulaires) | Frontend | P0 | Toutes | **À FAIRE** |
-| **MM-QA-092** | 9 | Tests E2E de bout en bout | Tous | P0 | MM-QA-090 | **À FAIRE** |
-| **MM-INF-090** | 9 | Rationalisation Redis | Infra | P1 | MM-BE-080 | **À FAIRE** |
-| **MM-INF-091** | 9 | Observabilité et logs JSON structurés avec requestId | Infra | P0 | MM-BE-020 | **À FAIRE** |
-| **MM-INF-092** | 9 | Healthchecks Liveness / Readiness | Infra | P0 | MM-INF-091 | **À FAIRE** |
-| **MM-INF-093** | 9 | Sauvegardes automatisées & politique RPO/RTO | Infra | P0 | MM-INF-001 | **À FAIRE** |
-| **MM-INF-094** | 9 | Pipeline CI/CD complet | Infra | P0 | MM-ALL-001 | **À FAIRE** |
-| **MM-QA-093** | 9 | Vérifications non-fonctionnelles (sécurité, a11y, perf) | Tous | P1 | MM-QA-092 | **À FAIRE** |
+| **MM-QA-090** | 9 | Tests backend automatisés (couverture critique) | Backend | P0 | Toutes | **TERMINÉ** |
+| **MM-QA-091** | 9 | Tests frontend automatisés (contextes, formulaires) | Frontend | P0 | Toutes | **TERMINÉ** |
+| **MM-QA-092** | 9 | Tests E2E et validation d'intégration | Tous | P0 | MM-QA-090 | **TERMINÉ** |
+| **MM-INF-090** | 9 | Rationalisation Redis | Infra | P1 | MM-BE-080 | **TERMINÉ** |
+| **MM-INF-091** | 9 | Observabilité et logs JSON structurés avec requestId | Infra | P0 | MM-BE-020 | **TERMINÉ** |
+| **MM-INF-092** | 9 | Healthchecks Liveness / Readiness | Infra | P0 | MM-INF-091 | **TERMINÉ** |
+| **MM-INF-093** | 9 | Sauvegardes automatisées & politique RPO/RTO | Infra | P0 | MM-INF-001 | **TERMINÉ** |
+| **MM-INF-094** | 9 | Pipeline CI/CD complet | Infra | P0 | MM-ALL-001 | **TERMINÉ** |
+| **MM-QA-093** | 9 | Vérifications non-fonctionnelles (sécurité, a11y, perf) | Tous | P1 | MM-QA-092 | **TERMINÉ** |
 | **MM-MGR-100** | 10 | Recette fonctionnelle Afrique & Europe | Manager | P0 | Phase 9 | **À FAIRE** |
 | **MM-INF-100** | 10 | Répétition générale en environnement de staging | Infra | P0 | MM-MGR-100 | **À FAIRE** |
 | **MM-MGR-101** | 10 | Comité Go / No-Go formel | Manager | P0 | MM-INF-100 | **À FAIRE** |
