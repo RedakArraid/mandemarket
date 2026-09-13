@@ -10,6 +10,7 @@
     "type-check": "node -e 'console.log(\"Backend syntax valid\")'",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:status": "prisma migrate status",
+    "reconciliation:check": "node scripts/verify-reconciliation.js",
     "seed:dev": "node scripts/seed.js",
     "reset:demo": "node scripts/demo-reset-seed.js",
     "db:generate": "prisma generate",

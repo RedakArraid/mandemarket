@@ -19,11 +19,11 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-INF-001** | 0 | Sauvegarder l'état courant & procédure de restore | Infra | P0 | Aucune | **TERMINÉ** |
 | **MM-BE-001** | 0 | Neutraliser les scripts destructifs & réparer seed | Backend | P0 | Aucune | **TERMINÉ** |
 | **MM-ALL-001** | 0 | Installer les garde-fous qualité (lint, test, CI) | Tous | P0 | MM-BE-001 | **TERMINÉ** |
-| **MM-BE-010** | 1 | Décider la stratégie de baseline des migrations | Backend | P0 | Phase 0 | **À FAIRE** |
-| **MM-BE-011** | 1 | Créer la migration initiale reproductible (baseline) | Backend | P0 | MM-BE-010 | **À FAIRE** |
-| **MM-BE-012** | 1 | Éliminer les données dupliquées (stock, ledger) | Backend | P0 | MM-BE-011 | **À FAIRE** |
-| **MM-INF-010** | 1 | Rendre le démarrage Docker non destructif | Infra | P0 | MM-BE-011 | **À FAIRE** |
-| **MM-BE-013** | 1 | Tester les migrations sur base propre & rollback | Backend | P0 | MM-INF-010 | **À FAIRE** |
+| **MM-BE-010** | 1 | Décider la stratégie de baseline des migrations | Backend | P0 | Phase 0 | **TERMINÉ** |
+| **MM-BE-011** | 1 | Créer la migration initiale reproductible (baseline) | Backend | P0 | MM-BE-010 | **TERMINÉ** |
+| **MM-BE-012** | 1 | Éliminer les données dupliquées (stock, ledger) | Backend | P0 | MM-BE-011 | **TERMINÉ** |
+| **MM-INF-010** | 1 | Rendre le démarrage Docker non destructif | Infra | P0 | MM-BE-011 | **TERMINÉ** |
+| **MM-BE-013** | 1 | Tester les migrations sur base propre & rollback | Backend | P0 | MM-INF-010 | **TERMINÉ** |
 | **MM-BE-020** | 2 | Centraliser et valider la configuration (Zod) | Backend | P0 | Phase 1 | **À FAIRE** |
 | **MM-BE-021** | 2 | Implémenter les sessions sécurisées & révocables | Backend | P0 | MM-BE-020 | **À FAIRE** |
 | **MM-BE-022** | 2 | Corriger le contrôle d'accès RBAC | Backend | P0 | MM-BE-021 | **À FAIRE** |

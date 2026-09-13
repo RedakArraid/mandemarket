@@ -77,18 +77,13 @@ sleep 5
 # Créer les dossiers nécessaires
 mkdir -p /app/uploads /app/logs /app/tmp
 
-# Appliquer le schéma Prisma
-echo "Synchronisation du schéma Prisma..."
-if npx prisma migrate deploy 2>/dev/null; then
-    echo "OK: Migrations Prisma appliquées"
+# Appliquer les migrations Prisma de façon stricte et non-destructive
+echo "Application des migrations Prisma (migrate deploy)..."
+if npx prisma migrate deploy; then
+    echo "OK: Migrations Prisma appliquées avec succès"
 else
-    echo "Migrations échouées (ordre incorrect détecté), fallback vers db push..."
-    if npx prisma db push --accept-data-loss --skip-generate; then
-        echo "OK: Schéma synchronisé via db push"
-    else
-        echo "ERREUR: Impossible de synchroniser le schéma. Arrêt."
-        exit 1
-    fi
+    echo "ERREUR CRITIQUE: Échec de 'prisma migrate deploy'. Arrêt immédiat pour protéger les données."
+    exit 1
 fi
 
 # Seed optionnel (seulement si SEED_DATA=true)

@@ -1,9 +1,9 @@
-// Schéma Prisma pour MandeMarket - E-commerce Complet
+// Schéma Prisma pour MandeMarket - Marketplace E-commerce Complète
 // Convention monétaire : tous les montants sont stockés en CENTIMES (Int).
 // Affichage FCFA = montant / 100.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
@@ -14,51 +14,45 @@ datasource db {
 
 // ===== CATÉGORIES (avec sous-catégories) =====
 model Category {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  description String
-  status      String   @default("active")
-  
-  // Hiérarchie : catégorie parente et sous-catégories
-  parentId    String?
-  parent      Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  id            String     @id @default(uuid())
+  name          String
+  slug          String     @unique
+  description   String
+  status        String     @default("active")
+  parentId      String?
+  parent        Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
   subcategories Category[] @relation("CategoryToSubcategory")
-  
-  // Ordre d'affichage
-  displayOrder Int      @default(0)
-  
-  // Relations
-  products    Product[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  displayOrder  Int        @default(0)
+  products      Product[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
   @@index([parentId])
   @@index([status])
 }
 
 // ===== VENDEURS (Marketplace) =====
 model Seller {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  storeName       String
-  slug            String   @unique
-  description     String?
-  logo            String?
-  status          String   @default("pending") // pending, approved, suspended
-  commissionRate  Float    @default(10) // Pourcentage prélevé par la plateforme
-  paymentInfo     Json?    // { method, account, name, ... } pour les versements
-  totalSales      Int      @default(0) // CA total (centimes)
-  totalEarnings   Int      @default(0) // Revenus nets après commission (centimes)
-  rating          Float    @default(0) // Note moyenne (1-5)
-  reviewCount     Int      @default(0)
-  products        Product[]
-  orderItems      OrderItem[]
-  payouts         SellerPayout[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String              @id @default(uuid())
+  userId         String              @unique
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeName      String
+  slug           String              @unique
+  description    String?
+  logo           String?
+  status         SellerStatus        @default(pending)
+  commissionRate Float               @default(10) // Pourcentage prélevé par la plateforme
+  paymentInfo    Json?               // { method, account, name, phone, iban, ... }
+  totalSales     Int                 @default(0) // CA total (centimes)
+  totalEarnings  Int                 @default(0) // Revenus nets après commission (centimes)
+  rating         Float               @default(0) // Note moyenne (1-5)
+  reviewCount    Int                 @default(0)
+  products       Product[]
+  orderItems     OrderItem[]
+  payouts        SellerPayout[]
+  ledgerEntries  SellerLedgerEntry[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@index([status])
   @@index([slug])
@@ -66,21 +60,21 @@ model Seller {
 
 // ===== PRODUITS =====
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
-  price       Int
+  price       Int           // centimes
   categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  sellerId    String?  // null = produit plateforme (admin), sinon = vendeur
-  seller      Seller?  @relation(fields: [sellerId], references: [id], onDelete: SetNull)
+  category    Category      @relation(fields: [categoryId], references: [id])
+  sellerId    String?       // null = produit plateforme (admin), sinon = vendeur
+  seller      Seller?       @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   image       String?
-  images      String[] // Galerie d'images multiples
+  images      String[]      // Galerie d'images
   description String
-  stock       Int      @default(0)
-  status      String   @default("active")
+  stock       Int           @default(0) // Projection maintenue; source de vérité = Inventory
+  status      ProductStatus @default(active)
   sku         String?
-  brand       String?  // Marque du produit
-  condition   String?  @default("new") // new, used, refurbished
+  brand       String?
+  condition   String?       @default("new")
   material    String?
   lining      String?
   coating     String?
@@ -101,46 +95,63 @@ model Product {
   orderItems  OrderItem[]
   inventory   Inventory?
   reviews     Review[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([sellerId, sku])
+  @@index([categoryId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([sku])
 }
 
 // ===== UTILISATEURS =====
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String
-  name          String?
-  role          String         @default("user") // user, admin, manager, seller, customer
-  seller        Seller?
-  orders        Order[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  password            String
+  name                String?
+  role                UserRole             @default(user)
+  seller              Seller?
+  customer            Customer?
+  orders              Order[]
+  notifications       Notification[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([role])
 }
 
 // ===== CLIENTS =====
 model Customer {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  firstName     String
-  lastName      String
-  phone         String?
-  address        Address?
-  orders         Order[]
-  returnRequests ReturnRequest[]
-  totalSpent    Int      @default(0) // centimes
-  loyaltyPoints Int      @default(0)
-  status        String   @default("active")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   String                 @id @default(uuid())
+  userId               String?                @unique
+  user                 User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email                String                 @unique
+  firstName            String
+  lastName             String
+  phone                String?
+  address              Address?
+  orders               Order[]
+  returnRequests       ReturnRequest[]
+  promotionRedemptions PromotionRedemption[]
+  totalSpent           Int                    @default(0) // centimes
+  loyaltyPoints        Int                    @default(0)
+  status               String                 @default("active")
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@index([email])
 }
 
 // ===== ADRESSES =====
 model Address {
   id         String   @id @default(uuid())
   customerId String   @unique
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   street     String
   city       String
   postalCode String
@@ -150,44 +161,99 @@ model Address {
   updatedAt  DateTime @updatedAt
 }
 
+// ===== SESSIONS SÉCURISÉES (MM-BE-021) =====
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+// ===== TOKENS DE RÉINITIALISATION MOT DE PASSE =====
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
 // ===== COMMANDES =====
 model Order {
-  id            String      @id @default(uuid())
-  customerId    String
-  customer      Customer    @relation(fields: [customerId], references: [id])
-  userId        String?
-  user          User?       @relation(fields: [userId], references: [id])
-  status        OrderStatus @default(PENDING)
-  totalAmount   Int         // centimes
-  taxAmount     Int         @default(0) // centimes
-  shippingCost  Int         @default(0) // centimes
-  discountAmount Int        @default(0) // centimes
-  promotionCode String?
-  items          OrderItem[]
-  payment        Payment?
-  shipping       Shipping?
-  returnRequests ReturnRequest[]
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                   String                @id @default(uuid())
+  orderNumber          String?               @unique
+  customerId           String
+  customer             Customer              @relation(fields: [customerId], references: [id])
+  userId               String?
+  user                 User?                 @relation(fields: [userId], references: [id])
+  status               OrderStatus           @default(PENDING)
+  currency             String                @default("XOF")
+  exchangeRate         Float                 @default(1.0)
+  subtotalAmount       Int                   @default(0) // centimes
+  shippingCost         Int                   @default(0) // centimes
+  taxAmount            Int                   @default(0) // centimes
+  discountAmount       Int                   @default(0) // centimes
+  totalAmount          Int                   // centimes
+  promotionCode        String?
+  customerSnapshot     Json?
+  billingAddress       Json?
+  shippingAddress      Json?
+  idempotencyKey       String?               @unique
+  items                OrderItem[]
+  payment              Payment?
+  shipping             Shipping?
+  returnRequests       ReturnRequest[]
+  ledgerEntries        SellerLedgerEntry[]
+  paymentEvents        PaymentEvent[]
+  promotionRedemptions PromotionRedemption[]
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([customerId])
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
 }
 
 // ===== ÉLÉMENTS DE COMMANDE =====
 model OrderItem {
-  id            String   @id @default(uuid())
-  orderId       String
-  order         Order    @relation(fields: [orderId], references: [id])
-  productId     Int
-  product       Product  @relation(fields: [productId], references: [id])
-  sellerId      String?  // Pour commission et dashboard vendeur
-  seller        Seller?  @relation(fields: [sellerId], references: [id], onDelete: SetNull)
-  quantity      Int
-  unitPrice     Int      // centimes
-  totalPrice    Int      // centimes
-  commissionAmount Int   @default(0) // Commission plateforme (centimes)
-  sellerEarnings   Int   @default(0) // Revenus vendeur après commission (centimes)
-  createdAt     DateTime @default(now())
+  id               String   @id @default(uuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        Int
+  product          Product  @relation(fields: [productId], references: [id])
+  sellerId         String?  // Pour commission et dashboard vendeur
+  seller           Seller?  @relation(fields: [sellerId], references: [id], onDelete: SetNull)
+  productSnapshot  Json?
+  selectedVariant  Json?
+  sku              String?
+  quantity         Int
+  unitPrice        Int      // centimes
+  totalPrice       Int      // centimes
+  commissionRate   Float    @default(10)
+  commissionAmount Int      @default(0) // Commission plateforme (centimes)
+  sellerEarnings   Int      @default(0) // Revenus vendeur après commission (centimes)
+  createdAt        DateTime @default(now())
 
+  @@index([orderId])
+  @@index([productId])
   @@index([sellerId])
 }
 
@@ -195,7 +261,7 @@ model OrderItem {
 model Payment {
   id            String        @id @default(uuid())
   orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id])
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   amount        Int           // centimes
   method        PaymentMethod
   status        PaymentStatus @default(PENDING)
@@ -204,51 +270,181 @@ model Payment {
   metadata      Json?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+  @@index([transactionId])
+}
+
+// ===== ÉVÉNEMENTS & WEBHOOKS DE PAIEMENT (MM-BE-040) =====
+model PaymentEvent {
+  id             String   @id @default(uuid())
+  orderId        String?
+  order          Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  paymentId      String?
+  gateway        String
+  eventType      String
+  idempotencyKey String   @unique
+  payload        Json
+  status         String   @default("PROCESSED") // PROCESSED, FAILED, IGNORED
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  @@index([gateway, eventType])
+  @@index([orderId])
+  @@index([idempotencyKey])
 }
 
 // ===== LIVRAISONS =====
 model Shipping {
-  id           String         @id @default(uuid())
-  orderId      String         @unique
-  order        Order          @relation(fields: [orderId], references: [id])
-  method       ShippingMethod
-  status       ShippingStatus @default(PENDING)
-  trackingCode String?
-  carrier      String?
+  id                String         @id @default(uuid())
+  orderId           String         @unique
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method            ShippingMethod
+  status            ShippingStatus @default(PENDING)
+  trackingCode      String?
+  carrier           String?
   estimatedDelivery DateTime?
-  actualDelivery   DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  actualDelivery    DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status])
+  @@index([trackingCode])
 }
 
 // ===== PROMOTIONS =====
 model Promotion {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  name          String
-  description   String
-  type          PromotionType
-  value         Int      // % ou montant fixe en centimes selon type
-  minAmount     Int?     // seuil min en centimes
-  maxUses       Int?
-  usedCount     Int      @default(0)
-  startDate     DateTime
-  endDate       DateTime
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String                @id @default(uuid())
+  code        String                @unique
+  name        String
+  description String
+  type        PromotionType
+  value       Int                   // % ou montant fixe en centimes selon type
+  minAmount   Int?                  // seuil min en centimes
+  maxUses     Int?
+  usedCount   Int                   @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean               @default(true)
+  redemptions PromotionRedemption[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([code])
+  @@index([isActive])
 }
 
-// ===== STOCK ET INVENTAIRE =====
+// ===== UTILISATIONS DE PROMOTION (MM-BE-032) =====
+model PromotionRedemption {
+  id              String    @id @default(uuid())
+  promotionId     String
+  promotion       Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  discountApplied Int       @default(0) // centimes
+  createdAt       DateTime  @default(now())
+
+  @@unique([promotionId, orderId])
+  @@index([customerId])
+  @@index([promotionId])
+}
+
+// ===== STOCK ET INVENTAIRE (MM-BE-012) =====
 model Inventory {
-  id        String   @id @default(uuid())
-  productId Int      @unique
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  reserved  Int      @default(0)
-  available Int      @default(0)
-  lowStockThreshold Int @default(10)
-  lastUpdated DateTime @default(now())
+  id                String   @id @default(uuid())
+  productId         Int      @unique
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity          Int      // Stock physique réel
+  reserved          Int      @default(0) // Stock réservé en cours de commande
+  available         Int      @default(0) // Stock disponible (quantity - reserved)
+  lowStockThreshold Int      @default(10)
+  lastUpdated       DateTime @default(now())
+
+  @@index([productId])
+}
+
+// ===== REGISTRE COMPTABLE VENDEUR (MM-BE-050) =====
+model SellerLedgerEntry {
+  id           String             @id @default(uuid())
+  sellerId     String
+  seller       Seller             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderId      String?
+  order        Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payoutId     String?
+  payout       SellerPayout?      @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  type         SellerLedgerType
+  amount       Int                // Montant en centimes (+ ou -)
+  feeAmount    Int                @default(0) // Commission plateforme (centimes)
+  netAmount    Int                // Net crédité/débité au vendeur (centimes)
+  status       SellerLedgerStatus @default(PENDING)
+  description  String?
+  balanceAfter Int?               // Projection du solde après opération
+  availableAt  DateTime?
+  createdAt    DateTime           @default(now())
+
+  @@index([sellerId, type])
+  @@index([sellerId, status])
+  @@index([orderId])
+  @@index([createdAt])
+}
+
+// ===== VERSEMENTS VENDEURS (MM-BE-051) =====
+model SellerPayout {
+  id            String              @id @default(uuid())
+  sellerId      String
+  seller        Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  amount        Int                 // Montant versé (centimes)
+  status        PayoutStatus        @default(pending)
+  method        String?             // bank_transfer, mobile_money, wave, orange_money, mtn
+  reference     String?
+  metadata      Json?
+  paidAt        DateTime?
+  ledgerEntries SellerLedgerEntry[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([sellerId])
+  @@index([status])
+}
+
+// ===== DEMANDES DE RETOUR =====
+model ReturnRequest {
+  id          String       @id @default(uuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  reason      String
+  description String?
+  status      ReturnStatus @default(pending)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+}
+
+// ===== AVIS CLIENTS =====
+model Review {
+  id            String       @id @default(uuid())
+  productId     Int
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerName  String
+  customerEmail String?
+  rating        Int          // 1-5 étoiles
+  title         String?
+  comment       String
+  isVerified    Boolean      @default(false)
+  helpful       Int          @default(0)
+  status        ReviewStatus @default(approved)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([productId])
+  @@index([status])
 }
 
 // ===== NOTIFICATIONS =====
@@ -259,32 +455,53 @@ model Notification {
   message   String
   isRead    Boolean          @default(false)
   userId    String?
-  user      User?            @relation(fields: [userId], references: [id])
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   metadata  Json?
   createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
 }
 
-// ===== AVIS CLIENTS =====
-model Review {
+// ===== JOURNAL D'AUDIT (MM-BE-022 / MM-INF-091) =====
+model AuditLog {
   id        String   @id @default(uuid())
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  customerName String
-  customerEmail String?
-  rating    Int      // 1-5 étoiles
-  title     String?
-  comment   String
-  isVerified Boolean  @default(false) // Avis vérifié (client ayant acheté)
-  helpful   Int      @default(0) // Nombre de personnes ayant trouvé l'avis utile
-  status    String   @default("approved") // approved, pending, rejected
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@index([productId])
-  @@index([status])
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 // ===== ENUMS =====
+enum UserRole {
+  user
+  customer
+  seller
+  manager
+  admin
+}
+
+enum SellerStatus {
+  pending
+  approved
+  suspended
+}
+
+enum ProductStatus {
+  draft
+  active
+  archived
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -338,38 +555,42 @@ enum NotificationType {
   SYSTEM
 }
 
-// ===== VERSEMENTS VENDEURS =====
-model SellerPayout {
-  id          String   @id @default(uuid())
-  sellerId    String
-  seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  amount      Int      // Montant versé (centimes)
-  status      String   @default("pending") // pending, processing, completed, failed
-  method      String?  // bank_transfer, mobile_money, etc.
-  reference   String?
-  metadata    Json?
-  paidAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([sellerId])
-  @@index([status])
+enum PayoutStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
 }
 
-// ===== DEMANDES DE RETOUR =====
-model ReturnRequest {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  reason      String
-  description String?
-  status      String   @default("pending") // pending, approved, rejected, completed
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum ReturnStatus {
+  pending
+  approved
+  rejected
+  completed
+}
 
-  @@index([orderId])
-  @@index([customerId])
-  @@index([status])
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum SellerLedgerType {
+  SALE_PENDING
+  SALE_AVAILABLE
+  COMMISSION
+  REFUND
+  PAYOUT_RESERVED
+  PAYOUT_COMPLETED
+  PAYOUT_RELEASED
+  ADJUSTMENT
+}
+
+enum SellerLedgerStatus {
+  PENDING
+  AVAILABLE
+  LOCKED
+  CLEARED
+  CANCELLED
 }

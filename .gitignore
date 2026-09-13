@@ -95,7 +95,8 @@ Thumbs.db
 tmp/
 temp/
 backups/
-*.sql
+backups/*.sql
+!backend/prisma/migrations/**/*.sql
 
 # Editor directories and files
 .vscode/*
