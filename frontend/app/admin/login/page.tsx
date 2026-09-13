@@ -84,13 +84,6 @@ export default function AdminLogin() {
               </div>
             )}
 
-            {/* Informations de test */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-800 mb-2">Comptes de test :</h4>
-              <p className="text-sm text-blue-700">Admin : admin@mandemarket.com / <strong>Admin@2024!</strong></p>
-              <p className="text-sm text-blue-700">Vendeur : vendeur@mandemarket.com / <strong>Vendeur@2024!</strong></p>
-            </div>
-
             {/* Champ Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

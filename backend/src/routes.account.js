@@ -3,7 +3,7 @@ const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'mandemarket-secret-key-change-in-production';
+const { JWT_SECRET } = require('./config/env');
 const db = require('./db');
 
 // Middleware customer auth

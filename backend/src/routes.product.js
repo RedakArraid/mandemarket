@@ -13,7 +13,7 @@ const productSchema = z.object({
   image: z.string().optional(),
   description: z.string().optional(),
   stock: z.number().int().nonnegative().optional(),
-  status: z.enum(['active', 'inactive']).optional(),
+  status: z.enum(['draft', 'active', 'archived']).optional(),
   sku: z.string().optional(),
   material: z.string().optional(),
   lining: z.string().optional(),
@@ -34,8 +34,8 @@ const productSchema = z.object({
   ageGroup: z.string().optional()
 });
 
-// Upload endpoint avec Cloudinary
-router.post('/upload', (req, res) => {
+// Upload endpoint avec Cloudinary sécurisé (MM-BE-023)
+router.post('/upload', requireAuth, requireProductWrite, (req, res) => {
   uploadSingle(req, res, async (err) => {
     if (err) {
       console.error('❌ Erreur upload:', err);
@@ -344,7 +344,7 @@ router.delete('/:id', requireAuth, requireProductWrite, async (req, res) => {
       // Plutôt que supprimer, on désactive le produit
       await db.product.update({
         where: { id },
-        data: { status: 'inactive' }
+        data: { status: 'archived' }
       });
       
       return res.status(200).json({ 

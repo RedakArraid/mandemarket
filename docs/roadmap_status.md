@@ -24,12 +24,12 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-012** | 1 | Éliminer les données dupliquées (stock, ledger) | Backend | P0 | MM-BE-011 | **TERMINÉ** |
 | **MM-INF-010** | 1 | Rendre le démarrage Docker non destructif | Infra | P0 | MM-BE-011 | **TERMINÉ** |
 | **MM-BE-013** | 1 | Tester les migrations sur base propre & rollback | Backend | P0 | MM-INF-010 | **TERMINÉ** |
-| **MM-BE-020** | 2 | Centraliser et valider la configuration (Zod) | Backend | P0 | Phase 1 | **À FAIRE** |
-| **MM-BE-021** | 2 | Implémenter les sessions sécurisées & révocables | Backend | P0 | MM-BE-020 | **À FAIRE** |
-| **MM-BE-022** | 2 | Corriger le contrôle d'accès RBAC | Backend | P0 | MM-BE-021 | **À FAIRE** |
-| **MM-FE-020** | 2 | Refaire les gardes d'interface & supprimer test credentials | Frontend | P0 | MM-BE-022 | **À FAIRE** |
-| **MM-BE-023** | 2 | Sécuriser produits et médias (Cloudinary isolé) | Backend | P1 | MM-BE-022 | **À FAIRE** |
-| **MM-INF-020** | 2 | Secrets, Dockerignore et analyse vulnérabilités | Infra | P0 | MM-BE-020 | **À FAIRE** |
+| **MM-BE-020** | 2 | Centraliser et valider la configuration (Zod) | Backend | P0 | Phase 1 | **TERMINÉ** |
+| **MM-BE-021** | 2 | Implémenter les sessions sécurisées & révocables | Backend | P0 | MM-BE-020 | **TERMINÉ** |
+| **MM-BE-022** | 2 | Corriger le contrôle d'accès RBAC | Backend | P0 | MM-BE-021 | **TERMINÉ** |
+| **MM-FE-020** | 2 | Refaire les gardes d'interface & supprimer test credentials | Frontend | P0 | MM-BE-022 | **TERMINÉ** |
+| **MM-BE-023** | 2 | Sécuriser produits et médias (Cloudinary isolé) | Backend | P1 | MM-BE-022 | **TERMINÉ** |
+| **MM-INF-020** | 2 | Secrets, Dockerignore et analyse vulnérabilités | Infra | P0 | MM-BE-020 | **TERMINÉ** |
 | **MM-BE-030** | 3 | Stabiliser le catalogue & unicité SKU | Backend | P1 | Phase 2 | **À FAIRE** |
 | **MM-BE-031** | 3 | Créer le service de tarification serveur (quote) | Backend | P0 | MM-BE-030 | **À FAIRE** |
 | **MM-BE-032** | 3 | Réécrire la création de commande atomique | Backend | P0 | MM-BE-031 | **À FAIRE** |

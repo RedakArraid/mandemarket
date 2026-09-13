@@ -13,8 +13,13 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'mandemarket', // Dossier dans Cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+    folder: (req, file) => {
+      if (req.seller && req.seller.id) {
+        return `mandemarket/sellers/${req.seller.id}`;
+      }
+      return 'mandemarket/platform';
+    },
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
     transformation: [
       { width: 800, height: 800, crop: 'limit' }, // Limite la taille
       { quality: 'auto' }, // Optimisation automatique
