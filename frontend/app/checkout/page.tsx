@@ -10,7 +10,7 @@ import PublicFooter from '../components/PublicFooter';
 import {
   UserIcon, MapPinIcon, CreditCardIcon, ShoppingBagIcon,
   LockClosedIcon, TruckIcon, CheckCircleIcon, ExclamationCircleIcon,
-  GlobeAltIcon, PhoneIcon,
+  GlobeAltIcon, PhoneIcon, TagIcon,
 } from '@heroicons/react/24/outline';
 
 type Region = 'africa' | 'europe';
@@ -228,6 +228,20 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Devis serveur autoritaire et promotions (MM-BE-031 / MM-FE-030)
+  const [serverQuote, setServerQuote] = useState<{
+    subtotalAmount: number;
+    shippingCost: number;
+    taxAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    appliedPromotion: { code: string; name?: string; discountAmount: number } | null;
+  } | null>(null);
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoMessage, setPromoMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+
   useEffect(() => { setIsHydrated(true); }, []);
   useEffect(() => { if (isHydrated && items.length === 0) router.push('/boutique'); }, [isHydrated, items.length, router]);
   useEffect(() => { setCountry(form.countryCode); }, [form.countryCode, setCountry]);
@@ -242,6 +256,38 @@ export default function CheckoutPage() {
     if (isCI) return CI_SHIPPING;
     return getAfricaShipping(form.countryCode);
   }, [region, isCI, form.countryCode]);
+
+  // Récupération dynamique du devis officiel auprès du PricingService
+  useEffect(() => {
+    if (items.length === 0) return;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
+    setIsQuoteLoading(true);
+    fetch(`${API_URL}/api/checkout/quote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items.map(item => ({ productId: item.product.id, quantity: item.quantity })),
+        country: form.countryCode || 'CI',
+        shippingMethod: form.shippingOptionId?.toLowerCase().includes('express') ? 'EXPRESS' : 'STANDARD',
+        promoCode: appliedPromo || undefined,
+      }),
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data && typeof data.totalAmount === 'number') {
+          setServerQuote(data);
+          if (data.appliedPromotion) {
+            setPromoMessage({
+              type: 'success',
+              text: `Code promo ${data.appliedPromotion.code} appliqué (-${displayPrice(data.appliedPromotion.discountAmount)})`,
+            });
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsQuoteLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, form.countryCode, form.shippingOptionId, appliedPromo]);
 
   // Réinitialiser shipping + payment quand la région ou le pays change
   useEffect(() => {
@@ -270,8 +316,9 @@ export default function CheckoutPage() {
   }, [form.commune]);
 
   const selectedShipping = shippingOptions.find(o => o.id === form.shippingOptionId) ?? shippingOptions[0];
-  const shippingCostXof = selectedShipping?.costXof ?? 0;
-  const totalWithShipping = totalPrice + shippingCostXof;
+  const shippingCostXof = serverQuote ? serverQuote.shippingCost : (selectedShipping?.costXof ?? 0);
+  const discountAmountXof = serverQuote ? serverQuote.discountAmount : 0;
+  const totalWithShipping = serverQuote ? serverQuote.totalAmount : (totalPrice + shippingCostXof);
 
   const displayPrice = (centimesXof: number) => {
     if (region === 'europe') return `${xofToEur(centimesXof).toFixed(2).replace('.', ',')} €`;
@@ -320,12 +367,17 @@ export default function CheckoutPage() {
       ? form.paymentMethod  // e.g. 'mtn_momo'
       : form.paymentMethod; // 'paystack' | 'stripe' | 'cash_on_delivery'
 
+    // Clé d'idempotence unique pour éviter tout double débit (MM-BE-032)
+    const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `mm_idemp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
     const payload = {
       customer: {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim(),
+        phone: form.phone.trim() || undefined,
       },
       address: {
         street: [form.street.trim(), form.commune && form.commune !== 'autre_ci' ? form.commune : ''].filter(Boolean).join(', '),
@@ -338,12 +390,11 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         unitPrice: item.product.price,
       })),
-      totalAmount: totalWithShipping,
       paymentMethod: gateway,
-      shippingMethod: `${selectedShipping.label} (${selectedShipping.detail})`,
-      shippingCost: shippingCostXof,
-      region,
-      notes: form.notes.trim(),
+      shippingMethod: form.shippingOptionId?.toLowerCase().includes('express') ? 'EXPRESS' : 'STANDARD',
+      promoCode: appliedPromo || undefined,
+      idempotencyKey,
+      notes: form.notes.trim() || undefined,
     };
 
     try {
@@ -356,11 +407,12 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error(data.error ?? data.message ?? 'Erreur lors de la commande.');
 
       const orderId = data.orderId ?? data.id ?? data.order?.id;
+      const orderRef = data.orderNumber || orderId;
       if (!orderId) throw new Error('Identifiant de commande non reçu.');
 
       if (form.paymentMethod === 'cash_on_delivery') {
         clearCart();
-        router.push(`/commande/${orderId}`);
+        router.push(`/commande/${orderRef}`);
         return;
       }
 
@@ -905,12 +957,74 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
+                {/* Code promo (MM-FE-030) */}
+                <div className="border-t border-gray-200 pt-4 mb-4">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+                    Code Promo / Réduction
+                  </label>
+                  {appliedPromo ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-sm text-green-800">
+                      <div className="flex items-center gap-2">
+                        <TagIcon className="w-4 h-4 text-green-600" />
+                        <span className="font-bold">{appliedPromo}</span>
+                        {discountAmountXof > 0 && (
+                          <span className="text-xs bg-green-200 text-green-900 px-2 py-0.5 rounded-full font-semibold">
+                            -{displayPrice(discountAmountXof)}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAppliedPromo(null);
+                          setPromoMessage(null);
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 font-semibold ml-2"
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ex: BIENVENUE10"
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                        className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none uppercase"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (promoInput.trim()) {
+                            setAppliedPromo(promoInput.trim().toUpperCase());
+                          }
+                        }}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold rounded-xl transition"
+                      >
+                        Appliquer
+                      </button>
+                    </div>
+                  )}
+                  {promoMessage && (
+                    <p className={`text-xs mt-1.5 ${promoMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                      {promoMessage.text}
+                    </p>
+                  )}
+                </div>
+
                 {/* Totaux */}
                 <div className="border-t border-gray-200 pt-4 space-y-2">
                   <div className="flex justify-between text-gray-600 text-sm">
                     <span>Sous-total</span>
                     <span className="font-semibold">{displayPrice(totalPrice)}</span>
                   </div>
+                  {discountAmountXof > 0 && (
+                    <div className="flex justify-between text-green-600 text-sm">
+                      <span>Remise promo</span>
+                      <span className="font-semibold">-{displayPrice(discountAmountXof)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-gray-600 text-sm">
                     <span>Livraison</span>
                     <span className={`font-semibold ${shippingCostXof === 0 ? 'text-green-600' : ''}`}>
@@ -927,7 +1041,13 @@ export default function CheckoutPage() {
                   )}
                   <div className="border-t border-gray-200 pt-3 flex justify-between text-gray-900">
                     <span className="text-lg font-bold">Total</span>
-                    <span className="text-lg font-bold text-orange-600">{displayPrice(totalWithShipping)}</span>
+                    <span className="text-lg font-bold text-orange-600">
+                      {isQuoteLoading ? (
+                        <span className="text-xs text-gray-400 font-normal">Calcul devis...</span>
+                      ) : (
+                        displayPrice(totalWithShipping)
+                      )}
+                    </span>
                   </div>
                 </div>
 

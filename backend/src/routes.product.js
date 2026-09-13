@@ -215,26 +215,49 @@ router.post('/', requireAuth, requireProductWrite, async (req, res) => {
 
     // Admin: sellerId null. Vendeur: sellerId de req.seller
     const sellerId = req.seller ? req.seller.id : null;
+    const initialStock = data.stock !== undefined ? data.stock : 10;
+    const generatedSku = data.sku?.trim() || `MM-${(sellerId || 'ADM').slice(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
     
-    const product = await db.product.create({ 
-      data: { ...data, sellerId },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true
+    const product = await db.$transaction(async (tx) => {
+      const p = await tx.product.create({ 
+        data: {
+          ...data,
+          sku: generatedSku,
+          sellerId,
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true
+            }
           }
         }
-      }
+      });
+
+      // Garantir l'existence atomique de la fiche d'inventaire
+      await tx.inventory.create({
+        data: {
+          productId: p.id,
+          quantity: initialStock,
+          reserved: 0,
+          available: initialStock,
+          lowStockThreshold: 5,
+        },
+      });
+
+      return p;
     });
     
     res.status(201).json(product);
   } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'Le code SKU existe déjà pour cette boutique' });
+    }
     console.error('Erreur création produit:', err);
     if (err.errors) {
-      // Erreur de validation Zod
       res.status(400).json({ error: 'Données invalides', details: err.errors });
     } else {
       res.status(400).json({ error: err.message || 'Erreur lors de la création du produit' });

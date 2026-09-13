@@ -53,4 +53,19 @@ async function requireSeller(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, requireAdmin, requireRole, requireSeller };
+function optionalAuth(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return next();
+  }
+  const token = auth.split(' ')[1];
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload;
+  } catch (err) {
+    // Ignore invalid/expired token for optional authentication
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, requireRole, requireSeller, optionalAuth };

@@ -1,8 +1,9 @@
 const express = require('express');
 const { z } = require('zod');
 const router = express.Router();
-const { requireAuth, requireRole } = require('./middleware.auth');
+const { requireAuth, requireRole, optionalAuth } = require('./middleware.auth');
 const db = require('./db');
+const { OrderService } = require('./services/order.service');
 
 // Schémas de validation
 const orderSchema = z.object({
@@ -30,187 +31,153 @@ const orderUpdateSchema = z.object({
 // Schéma de validation pour le checkout public
 const checkoutSchema = z.object({
   customer: z.object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    email: z.string().email(),
-    phone: z.string().optional()
+    firstName: z.string().min(1, 'Le prénom est requis'),
+    lastName: z.string().min(1, 'Le nom est requis'),
+    email: z.string().email('Email invalide'),
+    phone: z.string().optional().nullable()
   }),
   address: z.object({
-    street: z.string().min(1),
-    city: z.string().min(1),
+    street: z.string().min(1, "L'adresse est requise"),
+    city: z.string().min(1, 'La ville est requise'),
     postalCode: z.string().default('00000'),
-    country: z.string().default('Côte d\'Ivoire')
+    country: z.string().default("Côte d'Ivoire")
   }),
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
-    unitPrice: z.number().int().positive()
-  })).min(1),
-  totalAmount: z.number().int().positive(),
+    unitPrice: z.number().int().positive().optional(),
+    selectedVariant: z.record(z.any()).optional()
+  })).min(1, 'Au moins un article est requis'),
   paymentMethod: z.string().default('cash_on_delivery'),
   shippingMethod: z.string().optional(),
-  shippingCost: z.number().int().min(0).optional().default(0),
-  region: z.enum(['africa', 'europe']).optional().default('africa'),
-  notes: z.string().optional()
+  promoCode: z.string().optional().nullable(),
+  idempotencyKey: z.string().optional().nullable(),
+  notes: z.string().optional().nullable()
 });
 
-// POST checkout public (sans authentification requise)
-router.post('/checkout', async (req, res) => {
+// POST checkout public (atomique et idempotent via OrderService - MM-BE-032)
+router.post('/checkout', optionalAuth, async (req, res) => {
   try {
     const data = checkoutSchema.parse(req.body);
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-    // Normaliser le paymentMethod (inclut les opérateurs Mobile Money CI)
-    const payMethodMap = {
-      'cash_on_delivery': 'CASH_ON_DELIVERY', 'mobile_money': 'CASH_ON_DELIVERY',
-      'bank_transfer': 'BANK_TRANSFER',
-      'paystack': 'CARD', 'cinetpay': 'CARD', 'stripe': 'CARD',
-      'mtn_momo': 'CARD', 'orange_money': 'CARD', 'wave': 'CARD', 'moov_money': 'CARD',
-    };
-    const normalizedMethod = payMethodMap[data.paymentMethod] || data.paymentMethod.toUpperCase();
+    const { order, isDuplicate } = await OrderService.checkoutOrder({
+      customerData: data.customer,
+      addressData: data.address,
+      items: data.items,
+      shippingMethod: data.shippingMethod,
+      promoCode: data.promoCode,
+      paymentMethod: data.paymentMethod,
+      idempotencyKey: data.idempotencyKey,
+      notes: data.notes,
+      reqUser: req.user,
+      ipAddress,
+    });
 
-    // Upsert le client par email (créer ou trouver)
-    let customer = await db.customer.findUnique({ where: { email: data.customer.email } });
-    if (!customer) {
-      customer = await db.customer.create({
-        data: {
-          email: data.customer.email,
-          firstName: data.customer.firstName,
-          lastName: data.customer.lastName,
-          phone: data.customer.phone,
-          ...(data.address && {
-            address: {
-              create: {
-                street: data.address.street,
-                city: data.address.city,
-                postalCode: data.address.postalCode || '00000',
-                country: data.address.country || 'Côte d\'Ivoire',
-                isDefault: true
-              }
-            }
-          })
+    // Envoi asynchrone des emails de confirmation si nouvelle commande
+    if (!isDuplicate) {
+      try {
+        const emailService = require('./services/email.service');
+        const fullCustomer = await db.customer.findUnique({ where: { id: order.customerId } });
+        const fullOrder = await db.order.findUnique({
+          where: { id: order.id },
+          include: { items: { include: { product: { select: { name: true } } } } }
+        });
+        if (fullCustomer && fullOrder) {
+          emailService.sendOrderConfirmation(fullCustomer, fullOrder).catch(console.error);
+          emailService.sendNewOrderNotification(fullOrder, fullCustomer).catch(console.error);
         }
-      });
-    } else if (data.address) {
-      // Mettre à jour l'adresse si elle existe
-      await db.address.upsert({
-        where: { customerId: customer.id },
-        create: { customerId: customer.id, street: data.address.street, city: data.address.city, postalCode: data.address.postalCode || '00000', country: data.address.country || 'Côte d\'Ivoire', isDefault: true },
-        update: { street: data.address.street, city: data.address.city, postalCode: data.address.postalCode || '00000', country: data.address.country || 'Côte d\'Ivoire' }
-      });
+      } catch (emailErr) {
+        console.error('[Email] Erreur notification:', emailErr.message);
+      }
     }
 
-    // Récupérer les produits et vendeurs pour calcul des commissions
-    const productIds = [...new Set(data.items.map(i => i.productId))];
-    const products = await db.product.findMany({
-      where: { id: { in: productIds } },
-      include: { seller: true }
-    });
-    const productMap = Object.fromEntries(products.map(p => [p.id, p]));
-
-    const itemsWithCommission = await Promise.all(data.items.map(async (item) => {
-      const totalPrice = item.unitPrice * item.quantity;
-      const product = productMap[item.productId];
-      let sellerId = null;
-      let commissionAmount = 0;
-      let sellerEarnings = totalPrice;
-
-      if (product?.seller) {
-        sellerId = product.seller.id;
-        const rate = product.seller.commissionRate || 10;
-        commissionAmount = Math.round(totalPrice * (rate / 100));
-        sellerEarnings = totalPrice - commissionAmount;
-      }
-
-      return {
-        productId: item.productId,
-        sellerId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice,
-        commissionAmount,
-        sellerEarnings
-      };
-    }));
-
-    // Créer la commande avec les items
-    const order = await db.order.create({
-      data: {
-        customerId: customer.id,
-        status: 'PENDING',
-        totalAmount: data.totalAmount,
-        notes: data.notes,
-        items: {
-          create: itemsWithCommission
-        }
-      },
-      include: {
-        customer: true,
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
-    });
-
-    // Créer le paiement
-    await db.payment.create({
-      data: {
-        orderId: order.id,
-        amount: data.totalAmount,
-        method: normalizedMethod,
-        status: 'PENDING'
-      }
-    });
-
-    // Délai de livraison estimé selon la région
-    const deliveryDays = data.region === 'europe' ? 7 : 3;
-    const carrier = data.shippingMethod
-      ? data.shippingMethod.split('(')[0].trim()
-      : (data.region === 'europe' ? 'COLISSIMO' : 'LOCAL_ABIDJAN');
-
-    await db.shipping.create({
-      data: {
-        orderId: order.id,
-        method: 'STANDARD',
-        carrier,
-        status: 'PENDING',
-        estimatedDelivery: new Date(Date.now() + deliveryDays * 24 * 60 * 60 * 1000),
-      }
-    });
-
-    // Mettre à jour le total dépensé par le client
-    await db.customer.update({
-      where: { id: customer.id },
-      data: {
-        totalSpent: { increment: data.totalAmount }
-      }
-    });
-
-    // Envoyer emails de confirmation (async, ne bloque pas la réponse)
-    try {
-      const emailService = require('./services/email.service');
-      const fullCustomer = await db.customer.findUnique({ where: { id: customer.id } });
-      const fullOrder = await db.order.findUnique({
-        where: { id: order.id },
-        include: { items: { include: { product: { select: { name: true } } } } }
-      });
-      emailService.sendOrderConfirmation(fullCustomer, fullOrder).catch(console.error);
-      emailService.sendNewOrderNotification(fullOrder, fullCustomer).catch(console.error);
-    } catch (emailErr) {
-      console.error('[Email] Erreur préparation:', emailErr.message);
-    }
-
-    res.status(201).json({
+    res.status(isDuplicate ? 200 : 201).json({
       success: true,
       orderId: order.id,
-      message: 'Commande créée avec succès'
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+      currency: order.currency,
+      isDuplicate,
+      order,
+      message: isDuplicate ? 'Commande déjà enregistrée' : 'Commande créée avec succès'
     });
   } catch (error) {
     console.error('Erreur lors du checkout:', error);
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Données invalides', details: error.errors });
     }
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+    res.status(400).json({ error: error.message || 'Erreur lors de la commande' });
+  }
+});
+
+// GET consultation publique d'une commande par numéro de commande ou identifiant (MM-FE-031)
+router.get('/reference/:orderNumber', async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    const order = await db.order.findFirst({
+      where: {
+        OR: [
+          { orderNumber },
+          { id: orderNumber }
+        ]
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true
+          }
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: true,
+                price: true,
+                slug: true
+              }
+            }
+          }
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            method: true,
+            status: true,
+            transactionId: true,
+            createdAt: true
+          }
+        },
+        shipping: {
+          select: {
+            id: true,
+            method: true,
+            carrier: true,
+            status: true,
+            trackingNumber: true,
+            estimatedDelivery: true
+          }
+        }
+      }
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Commande introuvable' });
+    }
+
+    res.json({ order });
+  } catch (error) {
+    console.error('Erreur récupération commande par référence:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -425,26 +392,83 @@ router.post('/', requireAuth, requireRole(['admin', 'manager']), async (req, res
   }
 });
 
-// PUT mettre à jour le statut d'une commande
-router.put('/:id', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
+// PATCH /:id/status - Transition d'état sécurisée via machine d'état (MM-BE-033)
+router.patch('/:id/status', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
   try {
-    const data = orderUpdateSchema.parse(req.body);
-    
-    const order = await db.order.update({
-      where: { id: req.params.id },
-      data,
-      include: {
-        customer: true,
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
+    const { status, reason } = req.body;
+    if (!status) {
+      return res.status(400).json({ error: 'Statut requis' });
+    }
+
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const updatedOrder = await OrderService.transitionOrderStatus(req.params.id, status, {
+      userId: req.user?.userId,
+      reason,
+      ipAddress,
     });
 
     // Email de mise à jour statut
-    if (data.status && order.customer) {
+    if (updatedOrder.customer) {
+      try {
+        const emailService = require('./services/email.service');
+        emailService.sendOrderStatusUpdate(updatedOrder.customer, updatedOrder, status).catch(console.error);
+      } catch (emailErr) {
+        console.error('[Email] Erreur statut:', emailErr.message);
+      }
+    }
+
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    if (error.statusCode === 409) {
+      return res.status(409).json({ error: error.message });
+    }
+    console.error('Erreur transition statut commande:', error);
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur serveur' });
+  }
+});
+
+// PUT mettre à jour une commande (sécurisé avec machine d'état - MM-BE-033)
+router.put('/:id', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
+  try {
+    const data = orderUpdateSchema.parse(req.body);
+    let order;
+
+    if (data.status) {
+      const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      order = await OrderService.transitionOrderStatus(req.params.id, data.status, {
+        userId: req.user?.userId,
+        reason: data.notes,
+        ipAddress,
+      });
+    }
+
+    if (data.notes) {
+      order = await db.order.update({
+        where: { id: req.params.id },
+        data: { notes: data.notes },
+        include: {
+          customer: true,
+          items: { include: { product: true } },
+          payment: true,
+          shipping: true
+        }
+      });
+    }
+
+    if (!order) {
+      order = await db.order.findUnique({
+        where: { id: req.params.id },
+        include: {
+          customer: true,
+          items: { include: { product: true } },
+          payment: true,
+          shipping: true
+        }
+      });
+    }
+
+    // Email de mise à jour statut
+    if (data.status && order?.customer) {
       try {
         const emailService = require('./services/email.service');
         emailService.sendOrderStatusUpdate(order.customer, order, data.status).catch(console.error);
@@ -455,11 +479,14 @@ router.put('/:id', requireAuth, requireRole(['admin', 'manager']), async (req, r
 
     res.json(order);
   } catch (error) {
+    if (error.statusCode === 409) {
+      return res.status(409).json({ error: error.message });
+    }
     console.error('Erreur lors de la mise à jour de la commande:', error);
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Données invalides', details: error.errors });
     }
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 

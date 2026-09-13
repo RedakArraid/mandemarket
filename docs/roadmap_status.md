@@ -30,13 +30,13 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-FE-020** | 2 | Refaire les gardes d'interface & supprimer test credentials | Frontend | P0 | MM-BE-022 | **TERMINÉ** |
 | **MM-BE-023** | 2 | Sécuriser produits et médias (Cloudinary isolé) | Backend | P1 | MM-BE-022 | **TERMINÉ** |
 | **MM-INF-020** | 2 | Secrets, Dockerignore et analyse vulnérabilités | Infra | P0 | MM-BE-020 | **TERMINÉ** |
-| **MM-BE-030** | 3 | Stabiliser le catalogue & unicité SKU | Backend | P1 | Phase 2 | **À FAIRE** |
-| **MM-BE-031** | 3 | Créer le service de tarification serveur (quote) | Backend | P0 | MM-BE-030 | **À FAIRE** |
-| **MM-BE-032** | 3 | Réécrire la création de commande atomique | Backend | P0 | MM-BE-031 | **À FAIRE** |
-| **MM-BE-033** | 3 | Implémenter les machines d'état (Order, Payment, Shipping) | Backend | P0 | MM-BE-032 | **À FAIRE** |
-| **MM-BE-034** | 3 | Annulation et expiration avec libération de stock | Backend | P0 | MM-BE-033 | **À FAIRE** |
-| **MM-FE-030** | 3 | Brancher le checkout sur le devis serveur | Frontend | P0 | MM-BE-031 | **À FAIRE** |
-| **MM-FE-031** | 3 | Corriger confirmation et suivi de commande | Frontend | P0 | MM-BE-032 | **À FAIRE** |
+| **MM-BE-030** | 3 | Stabiliser le catalogue & unicité SKU | Backend | P1 | Phase 2 | **TERMINÉ** |
+| **MM-BE-031** | 3 | Créer le service de tarification serveur (quote) | Backend | P0 | MM-BE-030 | **TERMINÉ** |
+| **MM-BE-032** | 3 | Réécrire la création de commande atomique | Backend | P0 | MM-BE-031 | **TERMINÉ** |
+| **MM-BE-033** | 3 | Implémenter les machines d'état (Order, Payment, Shipping) | Backend | P0 | MM-BE-032 | **TERMINÉ** |
+| **MM-BE-034** | 3 | Annulation et expiration avec libération de stock | Backend | P0 | MM-BE-033 | **TERMINÉ** |
+| **MM-FE-030** | 3 | Brancher le checkout sur le devis serveur | Frontend | P0 | MM-BE-031 | **TERMINÉ** |
+| **MM-FE-031** | 3 | Corriger confirmation et suivi de commande | Frontend | P0 | MM-BE-032 | **TERMINÉ** |
 | **MM-BE-040** | 4 | Créer la couche commune de paiement | Backend | P0 | Phase 3 | **À FAIRE** |
 | **MM-BE-041** | 4 | Corriger CinetPay (HMAC + payment/check) | Backend | P0 | MM-BE-040 | **À FAIRE** |
 | **MM-BE-042** | 4 | Corriger Paystack (signature + vérification API) | Backend | P0 | MM-BE-040 | **À FAIRE** |

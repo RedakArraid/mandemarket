@@ -26,6 +26,7 @@ interface OrderItem {
 
 interface OrderData {
   id: string;
+  orderNumber?: string;
   status: string;
   totalAmount: number;
   createdAt: string;
@@ -83,12 +84,14 @@ export default function OrderConfirmationPage() {
   useEffect(() => {
     if (!orderId) return;
     const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-    fetch(`${API}/api/account/orders/${orderId}`)
-      .then(r => {
-        if (!r.ok) throw new Error('not found');
-        return r.json();
+    fetch(`${API}/api/orders/reference/${orderId}`)
+      .then(async (r) => {
+        if (r.ok) return r.json();
+        const r2 = await fetch(`${API}/api/account/orders/${orderId}`);
+        if (!r2.ok) throw new Error('not found');
+        return r2.json();
       })
-      .then(data => setOrder(data.order ?? data))
+      .then((data) => setOrder(data.order ?? data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [orderId]);
@@ -153,7 +156,7 @@ export default function OrderConfirmationPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
                 <div className="inline-flex flex-col items-center bg-orange-50 border-2 border-orange-200 rounded-2xl px-6 py-3">
                   <span className="text-xs font-semibold text-orange-600 uppercase tracking-widest mb-1">Commande</span>
-                  <span className="text-lg font-bold text-orange-700 font-mono">#{order.id.slice(0, 8).toUpperCase()}</span>
+                  <span className="text-lg font-bold text-orange-700 font-mono">#{order.orderNumber || order.id.slice(0, 8).toUpperCase()}</span>
                 </div>
                 {statusInfo && (
                   <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold ${statusInfo.color}`}>
