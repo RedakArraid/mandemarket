@@ -298,7 +298,11 @@ async function main() {
 
   const adminUser = await db.user.upsert({
     where: { email: adminEmail },
-    update: {},
+    update: {
+      password: adminHash,
+      name: 'Administrateur MandeMarket',
+      role: 'admin',
+    },
     create: {
       email: adminEmail,
       password: adminHash,
@@ -334,7 +338,11 @@ async function main() {
   const sellerHash = await bcrypt.hash('Vendeur@2024!', 12);
   const sellerUser = await db.user.upsert({
     where: { email: 'vendeur@mandemarket.com' },
-    update: {},
+    update: {
+      password: sellerHash,
+      name: 'Aminata Koné',
+      role: 'seller',
+    },
     create: {
       email: 'vendeur@mandemarket.com',
       password: sellerHash,

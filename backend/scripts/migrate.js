@@ -23,16 +23,17 @@ async function main() {
 
     // 2. Créer un utilisateur admin
     console.log('👤 Création de l\'utilisateur admin...');
-    const adminPassword = await bcrypt.hash('admin123', 12);
+    const adminPasswordPlain = process.env.SEED_ADMIN_PASSWORD || 'Admin@2024!';
+    const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
     const admin = await db.user.create({
       data: {
-        email: 'admin@mandemarket.com',
+        email: process.env.SEED_ADMIN_EMAIL || 'admin@mandemarket.com',
         password: adminPassword,
         name: 'Administrateur MandeMarket',
         role: 'admin'
       }
     });
-    console.log('✅ Admin créé:', admin.email);
+    console.log('✅ Admin créé:', admin.email, '(mot de passe seed)');
 
     // 3. Créer les catégories
     console.log('🏷️ Création des catégories...');

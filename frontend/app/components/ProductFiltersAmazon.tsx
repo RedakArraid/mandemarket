@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { 
   ChevronDownIcon,
   ChevronRightIcon,
@@ -189,21 +190,34 @@ export default function ProductFiltersAmazon({
               <button
                 onClick={() => setSelectedSellerId('all')}
                 className={`block w-full text-left px-2 py-1.5 text-sm transition-colors ${
-                  selectedSellerId === 'all' ? 'text-orange-600 font-bold' : 'text-gray-700 hover:text-orange-600'
+                  selectedSellerId === 'all' ? 'text-brand-orange font-bold' : 'text-gray-700 hover:text-brand-orange'
                 }`}
               >
                 Toutes les boutiques
               </button>
               {availableSellers.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedSellerId(s.id)}
-                  className={`block w-full text-left px-2 py-1.5 text-sm transition-colors ${
-                    selectedSellerId === s.id ? 'text-orange-600 font-bold' : 'text-gray-700 hover:text-orange-600'
-                  }`}
-                >
-                  {s.storeName}
-                </button>
+                s.slug ? (
+                  <Link
+                    key={s.id}
+                    href={`/vendeur/${s.slug}`}
+                    className={`block w-full text-left px-2 py-1.5 text-sm transition-colors ${
+                      selectedSellerId === s.id ? 'text-brand-orange font-bold' : 'text-gray-700 hover:text-brand-orange'
+                    }`}
+                  >
+                    {s.storeName}
+                  </Link>
+                ) : (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setSelectedSellerId(s.id)}
+                    className={`block w-full text-left px-2 py-1.5 text-sm transition-colors ${
+                      selectedSellerId === s.id ? 'text-brand-orange font-bold' : 'text-gray-700 hover:text-brand-orange'
+                    }`}
+                  >
+                    {s.storeName}
+                  </button>
+                )
               ))}
             </div>
           )}

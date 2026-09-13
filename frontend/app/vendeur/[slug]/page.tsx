@@ -185,9 +185,9 @@ export default function VendeurProfilPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Identity */}
-        <div className="relative -mt-12 md:-mt-14 mb-6 flex flex-col md:flex-row md:items-end gap-5">
-          <div className="flex-shrink-0">
+        {/* Identity — logo chevauche un peu la bannière, le nom reste sous la couverture */}
+        <div className="relative mb-6 flex flex-col md:flex-row md:items-end gap-5">
+          <div className="flex-shrink-0 -mt-10 md:-mt-12 z-10">
             {seller.logo ? (
               <img
                 src={seller.logo}
@@ -201,7 +201,7 @@ export default function VendeurProfilPage() {
             )}
           </div>
 
-          <div className="flex-1 min-w-0 pb-1">
+          <div className="flex-1 min-w-0 pt-3 md:pt-14 md:pb-1">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <h1 className="text-2xl md:text-3xl font-extrabold text-brand-navy">{seller.storeName}</h1>
                 {seller.status === 'approved' && (

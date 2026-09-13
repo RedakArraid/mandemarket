@@ -39,15 +39,15 @@ function Countdown() {
 
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    <div className="inline-flex items-center gap-2 bg-black/80 text-white rounded-lg px-3 py-2 text-sm font-semibold">
-      <span className="text-white/70 font-medium mr-1">Fin de l&apos;offre dans:</span>
+    <div className="inline-flex items-center gap-2 border-2 border-[#0B4D32] bg-[#0B4D32] text-white rounded-lg px-3 py-2 text-sm font-semibold">
+      <span className="text-white/85 font-medium mr-1">Fin de l&apos;offre dans:</span>
       {[
         [left.d, 'j'],
         [left.h, 'h'],
         [left.m, 'm'],
         [left.s, 's'],
       ].map(([v, u], i) => (
-        <span key={i} className="bg-gray-800 rounded px-2 py-1 tabular-nums">
+        <span key={i} className="bg-[#073A26] border border-[#094A31] rounded px-2 py-1 tabular-nums">
           {pad(Number(v))} {u}
         </span>
       ))}
@@ -86,11 +86,11 @@ export default function BonsPlansPage() {
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 relative z-10">
           <div className="flex items-center min-h-[320px] lg:min-h-[400px]">
-            <div className="max-w-2xl">
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-3 text-black drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
+            <div className="max-w-[33.6rem] rounded-2xl border-2 border-[#0B4D32] bg-[#0B4D32]/85 px-6 py-6 md:px-8 md:py-7 shadow-lg">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-3 text-white">
                 Les bons plans MandinMarket
               </h1>
-              <p className="text-black text-lg mb-6 font-semibold drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
+              <p className="text-white text-lg mb-6 font-semibold">
                 Des offres exceptionnelles, uniquement pour vous !
               </p>
               <Countdown />
