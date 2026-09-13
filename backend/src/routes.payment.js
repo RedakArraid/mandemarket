@@ -1,112 +1,37 @@
 const express = require('express');
-const { detectRegion } = require('./utils/region');
+const { z } = require('zod');
 const router = express.Router();
 const db = require('./db');
+const PaymentService = require('./services/payment.service');
+const paystackService = require('./services/paystack.service');
+const cinetpayService = require('./services/cinetpay.service');
+const stripeService = require('./services/stripe.service');
 
-// POST /api/payment/initiate
-// Body: { orderId, gateway?: string, returnBaseUrl?: string }
-// Gateway par région : africa → paystack (ou cinetpay en fallback), europe → stripe
+const initiateSchema = z.object({
+  orderId: z.string().uuid('ID de commande invalide'),
+  gateway: z.string().optional(),
+  returnBaseUrl: z.string().url().optional(),
+  operatorGateway: z.string().optional(),
+});
+
+// POST /api/payment/initiate - Initialise le paiement auprès du prestataire (MM-BE-040)
 router.post('/initiate', async (req, res) => {
   try {
-    const { orderId, gateway, returnBaseUrl } = req.body;
-    if (!orderId) return res.status(400).json({ error: 'orderId requis' });
-
-    const order = await db.order.findUnique({
-      where: { id: orderId },
-      include: { customer: { include: { address: true } }, payment: true },
-    });
-    if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-
-    const BASE_URL = returnBaseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const API_BASE = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002';
-    const successUrl = `${BASE_URL}/checkout/success?orderId=${orderId}`;
-    const cancelUrl = `${BASE_URL}/checkout/cancel?orderId=${orderId}`;
-
-    // Détecter la région à partir du pays de livraison
-    const countryInput = order.customer?.address?.country || 'CI';
-    const region = detectRegion(countryInput);
-
-    // Opérateurs Mobile Money CI → tous routés vers Paystack avec canal spécifique
-    const CI_MOBILE_OPERATORS = new Set(['mtn_momo', 'orange_money', 'wave', 'moov_money']);
-
-    // Choisir la passerelle selon la région et la disponibilité
-    let effectiveGateway = gateway;
-    let operatorGateway = null; // opérateur CI si applicable
-
-    if (CI_MOBILE_OPERATORS.has(effectiveGateway)) {
-      operatorGateway = effectiveGateway; // conserver pour Paystack
-      effectiveGateway = 'paystack';
-    }
-
-    if (!effectiveGateway) {
-      effectiveGateway = region === 'europe' ? 'stripe' : 'paystack';
-    }
-
-    // Forcer la passerelle correcte si incohérente avec la région
-    if (region === 'europe' && effectiveGateway === 'paystack') effectiveGateway = 'stripe';
-    if (region === 'europe' && effectiveGateway === 'cinetpay') effectiveGateway = 'stripe';
-    if (region === 'africa' && effectiveGateway === 'stripe') effectiveGateway = 'paystack';
-
-    let result;
-
-    if (effectiveGateway === 'paystack') {
-      const paystackService = require('./services/paystack.service');
-      if (!paystackService.isConfigured()) {
-        // Fallback vers CinetPay si Paystack non configuré
-        const cinetpay = require('./services/cinetpay.service');
-        const notifyUrl = `${API_BASE}/api/payment/notify/cinetpay`;
-        result = await cinetpay.initiatePayment({
-          orderId, amount: order.totalAmount, customer: order.customer, returnUrl: successUrl, notifyUrl,
-        });
-        effectiveGateway = 'cinetpay';
-      } else {
-        result = await paystackService.initializeTransaction({
-          orderId,
-          amount: order.totalAmount,
-          email: order.customer.email,
-          callbackUrl: successUrl,
-          mobilePhone: order.customer.phone,
-          operatorGateway,
-        });
-      }
-    } else if (effectiveGateway === 'stripe') {
-      const stripeService = require('./services/stripe.service');
-      const currency = region === 'europe' ? 'eur' : 'xof';
-      result = await stripeService.createCheckoutSession({
-        orderId, amount: order.totalAmount, customer: order.customer, successUrl, cancelUrl, currency,
-      });
-    } else if (effectiveGateway === 'cinetpay') {
-      const cinetpay = require('./services/cinetpay.service');
-      const notifyUrl = `${API_BASE}/api/payment/notify/cinetpay`;
-      result = await cinetpay.initiatePayment({
-        orderId, amount: order.totalAmount, customer: order.customer, returnUrl: successUrl, notifyUrl,
-      });
-    } else {
-      return res.status(400).json({ error: `Passerelle inconnue: ${effectiveGateway}` });
-    }
-
-    // Sauvegarder gateway + transactionId
-    await db.payment.update({
-      where: { orderId },
-      data: {
-        gateway: effectiveGateway,
-        transactionId: result.sessionId || result.reference || result.transactionId || orderId,
-        status: 'PROCESSING',
-      },
-    }).catch(() => {});
-
-    res.json({ paymentUrl: result.paymentUrl, gateway: effectiveGateway, region });
+    const data = initiateSchema.parse(req.body);
+    const result = await PaymentService.initializePayment(data);
+    res.json(result);
   } catch (err) {
     console.error('[Payment] Erreur initiation:', err.message);
-    res.status(500).json({ error: err.message });
+    if (err.name === 'ZodError') {
+      return res.status(400).json({ error: 'Données invalides', details: err.errors });
+    }
+    res.status(err.statusCode || 500).json({ error: err.message || 'Erreur lors de l’initiation du paiement' });
   }
 });
 
-// POST /api/payment/webhook/paystack
-// Le corps brut est fourni par app.js (express.raw) pour la vérif HMAC.
+// POST /api/payment/webhook/paystack - Webhook Paystack vérifié par HMAC (MM-BE-042)
 router.post('/webhook/paystack', async (req, res) => {
   try {
-    const paystackService = require('./services/paystack.service');
     const signature = req.headers['x-paystack-signature'];
     const raw = Buffer.isBuffer(req.body)
       ? req.body.toString('utf8')
@@ -115,11 +40,12 @@ router.post('/webhook/paystack', async (req, res) => {
         : JSON.stringify(req.body || {});
 
     if (!process.env.PAYSTACK_SECRET_KEY) {
-      console.warn('[Paystack Webhook] PAYSTACK_SECRET_KEY manquant');
+      console.warn('[Paystack Webhook] PAYSTACK_SECRET_KEY non configuré');
       return res.status(503).send('Webhook non configuré');
     }
+
     if (!signature || !paystackService.verifyWebhookSignature(raw, signature)) {
-      console.warn('[Paystack Webhook] Signature invalide ou absente');
+      console.warn('[Paystack Webhook] Signature HMAC invalide');
       return res.status(401).send('Signature invalide');
     }
 
@@ -133,16 +59,28 @@ router.post('/webhook/paystack', async (req, res) => {
     console.log('[Paystack Webhook]', event?.event, event?.data?.reference);
 
     if (event?.event === 'charge.success') {
-      const { reference, metadata, status } = event.data || {};
+      const { reference, metadata, status, amount, currency } = event.data || {};
       const orderId = metadata?.orderId;
 
       if (orderId && status === 'success') {
-        await db.payment.updateMany({
-          where: { orderId },
-          data: { status: 'COMPLETED', transactionId: reference },
-        });
-        await db.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } }).catch(() => {});
-        console.log(`[Paystack] Paiement confirmé pour commande ${orderId}`);
+        // Double vérification serveur-à-serveur de la transaction
+        try {
+          const verified = await paystackService.verifyTransaction(reference);
+          if (verified.status && verified.data?.status === 'success') {
+            await PaymentService.processPaymentSuccess({
+              orderId,
+              gateway: 'paystack',
+              transactionId: reference,
+              amountPaid: amount,
+              currency: currency || 'XOF',
+              rawPayload: event,
+              eventId: String(event.data?.id || reference),
+            });
+            console.log(`[Paystack] Paiement vérifié et confirmé pour commande ${orderId}`);
+          }
+        } catch (verifyErr) {
+          console.error('[Paystack] Erreur vérification API:', verifyErr.message);
+        }
       }
     }
 
@@ -153,25 +91,39 @@ router.post('/webhook/paystack', async (req, res) => {
   }
 });
 
-// POST /api/payment/notify/cinetpay
+// POST /api/payment/notify/cinetpay - Notification IPN CinetPay avec check obligatoire (MM-BE-041)
 router.post('/notify/cinetpay', async (req, res) => {
   try {
-    const { cpm_trans_id, cpm_result } = req.body;
-    console.log('[CinetPay Webhook]', { cpm_trans_id, cpm_result });
+    const { cpm_trans_id } = req.body;
+    console.log('[CinetPay Notification reçue]', { cpm_trans_id });
 
     if (cpm_trans_id) {
-      const isPaid = cpm_result === '00';
-      const orderId = cpm_trans_id;
+      // Vérification serveur-à-serveur infalsifiable (ne jamais utiliser cpm_result seul)
+      const checkResult = await cinetpayService.checkPaymentStatus(cpm_trans_id);
 
-      await db.payment.updateMany({
-        where: { orderId },
-        data: { status: isPaid ? 'COMPLETED' : 'FAILED', transactionId: cpm_trans_id },
-      });
-
-      if (isPaid) {
-        await db.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } }).catch(() => {});
+      if (checkResult && checkResult.isSuccess) {
+        await PaymentService.processPaymentSuccess({
+          orderId: cpm_trans_id,
+          gateway: 'cinetpay',
+          transactionId: cpm_trans_id,
+          amountPaid: checkResult.amount,
+          currency: checkResult.currency,
+          rawPayload: checkResult.rawData,
+          eventId: `cinetpay_${cpm_trans_id}_${checkResult.paymentDate || 'accepted'}`,
+        });
+        console.log(`[CinetPay] Paiement vérifié avec succès pour commande ${cpm_trans_id}`);
+      } else if (checkResult && checkResult.status === 'REFUSED') {
+        await PaymentService.processPaymentFailure({
+          orderId: cpm_trans_id,
+          gateway: 'cinetpay',
+          transactionId: cpm_trans_id,
+          reason: 'Paiement refusé par CinetPay',
+          rawPayload: checkResult.rawData,
+          eventId: `cinetpay_${cpm_trans_id}_refused`,
+        });
       }
     }
+
     res.status(200).send('OK');
   } catch (err) {
     console.error('[CinetPay Webhook] Erreur:', err);
@@ -179,13 +131,12 @@ router.post('/notify/cinetpay', async (req, res) => {
   }
 });
 
-// POST /api/payment/webhook/stripe
-// Corps brut monté dans app.js — ne pas re-parser ici.
+// POST /api/payment/webhook/stripe - Webhook Stripe sécurisé (MM-BE-043)
 router.post('/webhook/stripe', async (req, res) => {
   try {
-    const stripeService = require('./services/stripe.service');
     const sig = req.headers['stripe-signature'];
     let event;
+
     try {
       event = await stripeService.constructWebhookEvent(req.body, sig);
     } catch (err) {
@@ -193,16 +144,34 @@ router.post('/webhook/stripe', async (req, res) => {
       return res.status(400).send('Signature invalide');
     }
 
-    if (event.type === 'checkout.session.completed') {
+    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
+      const session = event.data.object;
+      const orderId = session.metadata?.orderId || session.client_reference_id;
+
+      if (orderId && session.payment_status === 'paid') {
+        await PaymentService.processPaymentSuccess({
+          orderId,
+          gateway: 'stripe',
+          transactionId: session.id,
+          amountPaid: session.amount_total,
+          currency: session.currency?.toUpperCase(),
+          rawPayload: session,
+          eventId: event.id,
+        });
+        console.log(`[Stripe] Paiement confirmé pour commande ${orderId}`);
+      }
+    } else if (event.type === 'checkout.session.async_payment_failed') {
       const session = event.data.object;
       const orderId = session.metadata?.orderId || session.client_reference_id;
       if (orderId) {
-        await db.payment.updateMany({
-          where: { orderId },
-          data: { status: 'COMPLETED', transactionId: session.id },
+        await PaymentService.processPaymentFailure({
+          orderId,
+          gateway: 'stripe',
+          transactionId: session.id,
+          reason: 'Paiement asynchrone échoué',
+          rawPayload: session,
+          eventId: event.id,
         });
-        await db.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } }).catch(() => {});
-        console.log(`[Stripe] Paiement confirmé pour commande ${orderId}`);
       }
     }
 
@@ -213,35 +182,90 @@ router.post('/webhook/stripe', async (req, res) => {
   }
 });
 
-// GET /api/payment/status/:orderId
+// GET /api/payment/status/:orderId - Statut autoritaire du paiement (MM-FE-040)
 router.get('/status/:orderId', async (req, res) => {
   try {
-    const payment = await db.payment.findUnique({ where: { orderId: req.params.orderId } });
-    const order = await db.order.findUnique({ where: { id: req.params.orderId }, select: { status: true } });
-    res.json({ payment, orderStatus: order?.status });
-  } catch {
+    const { orderId } = req.params;
+    const payment = await db.payment.findUnique({ where: { orderId } });
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, orderNumber: true, status: true, totalAmount: true, currency: true },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Commande non trouvée' });
+    }
+
+    const isPaid = payment?.status === 'COMPLETED' || ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status);
+
+    res.json({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      orderStatus: order.status,
+      paymentStatus: payment?.status || 'PENDING',
+      isPaid,
+      payment: payment ? {
+        id: payment.id,
+        method: payment.method,
+        gateway: payment.gateway,
+        status: payment.status,
+        amount: payment.amount,
+        transactionId: payment.transactionId,
+        updatedAt: payment.updatedAt,
+      } : null,
+    });
+  } catch (err) {
+    console.error('Erreur récupération statut paiement:', err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// GET /api/payment/verify/paystack/:reference - Vérification manuelle
-router.get('/verify/paystack/:reference', async (req, res) => {
+// GET /api/payment/verify/:gateway/:reference - Vérification serveur à la demande
+router.get('/verify/:gateway/:reference', async (req, res) => {
   try {
-    const paystackService = require('./services/paystack.service');
-    const data = await paystackService.verifyTransaction(req.params.reference);
-    if (data.status && data.data?.status === 'success') {
-      const orderId = data.data?.metadata?.orderId;
-      if (orderId) {
-        await db.payment.updateMany({
-          where: { orderId },
-          data: { status: 'COMPLETED', transactionId: req.params.reference },
-        });
-        await db.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } }).catch(() => {});
+    const { gateway, reference } = req.params;
+
+    if (gateway === 'paystack') {
+      const data = await paystackService.verifyTransaction(reference);
+      if (data.status && data.data?.status === 'success') {
+        const orderId = data.data.metadata?.orderId;
+        if (orderId) {
+          const result = await PaymentService.processPaymentSuccess({
+            orderId,
+            gateway: 'paystack',
+            transactionId: reference,
+            amountPaid: data.data.amount,
+            currency: data.data.currency,
+            rawPayload: data,
+            eventId: `verify_${reference}`,
+          });
+          return res.json({ verified: true, status: 'COMPLETED', order: result.order });
+        }
       }
+      return res.json({ verified: false, status: data.data?.status || 'PENDING' });
     }
-    res.json(data);
+
+    if (gateway === 'cinetpay') {
+      const checkResult = await cinetpayService.checkPaymentStatus(reference);
+      if (checkResult && checkResult.isSuccess) {
+        const result = await PaymentService.processPaymentSuccess({
+          orderId: reference,
+          gateway: 'cinetpay',
+          transactionId: reference,
+          amountPaid: checkResult.amount,
+          currency: checkResult.currency,
+          rawPayload: checkResult.rawData,
+          eventId: `verify_${reference}`,
+        });
+        return res.json({ verified: true, status: 'COMPLETED', order: result.order });
+      }
+      return res.json({ verified: false, status: checkResult?.status || 'PENDING' });
+    }
+
+    res.status(400).json({ error: `Passerelle ${gateway} non prise en charge pour vérification manuelle` });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Erreur vérification manuelle paiement:', err);
+    res.status(500).json({ error: err.message || 'Erreur serveur' });
   }
 });
 

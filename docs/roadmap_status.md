@@ -37,13 +37,13 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-034** | 3 | Annulation et expiration avec libération de stock | Backend | P0 | MM-BE-033 | **TERMINÉ** |
 | **MM-FE-030** | 3 | Brancher le checkout sur le devis serveur | Frontend | P0 | MM-BE-031 | **TERMINÉ** |
 | **MM-FE-031** | 3 | Corriger confirmation et suivi de commande | Frontend | P0 | MM-BE-032 | **TERMINÉ** |
-| **MM-BE-040** | 4 | Créer la couche commune de paiement | Backend | P0 | Phase 3 | **À FAIRE** |
-| **MM-BE-041** | 4 | Corriger CinetPay (HMAC + payment/check) | Backend | P0 | MM-BE-040 | **À FAIRE** |
-| **MM-BE-042** | 4 | Corriger Paystack (signature + vérification API) | Backend | P0 | MM-BE-040 | **À FAIRE** |
-| **MM-BE-043** | 4 | Corriger Stripe (webhook vérifié + SEPA asynchrone) | Backend | P0 | MM-BE-040 | **À FAIRE** |
-| **MM-BE-044** | 4 | Finaliser le paiement à la livraison (COD avec lock stock) | Backend | P0 | MM-BE-040 | **À FAIRE** |
-| **MM-FE-040** | 4 | Refaire les pages paiement basées sur le statut serveur | Frontend | P0 | MM-BE-041 | **À FAIRE** |
-| **MM-INF-040** | 4 | Configurer les environnements prestataires (sandbox/live) | Infra | P0 | MM-BE-040 | **À FAIRE** |
+| **MM-BE-040** | 4 | Créer la couche commune de paiement | Backend | P0 | Phase 3 | **TERMINÉ** |
+| **MM-BE-041** | 4 | Corriger CinetPay (HMAC + payment/check) | Backend | P0 | MM-BE-040 | **TERMINÉ** |
+| **MM-BE-042** | 4 | Corriger Paystack (signature + vérification API) | Backend | P0 | MM-BE-040 | **TERMINÉ** |
+| **MM-BE-043** | 4 | Corriger Stripe (webhook vérifié + SEPA asynchrone) | Backend | P0 | MM-BE-040 | **TERMINÉ** |
+| **MM-BE-044** | 4 | Finaliser le paiement à la livraison (COD avec lock stock) | Backend | P0 | MM-BE-040 | **TERMINÉ** |
+| **MM-FE-040** | 4 | Refaire les pages paiement basées sur le statut serveur | Frontend | P0 | MM-BE-041 | **TERMINÉ** |
+| **MM-INF-040** | 4 | Configurer les environnements prestataires (sandbox/live) | Infra | P0 | MM-BE-040 | **TERMINÉ** |
 | **MM-BE-050** | 5 | Implémenter le ledger vendeur en partie double | Backend | P0 | Phase 4 | **À FAIRE** |
 | **MM-BE-051** | 5 | Sécuriser les retraits (réservation atomique de solde) | Backend | P0 | MM-BE-050 | **À FAIRE** |
 | **MM-BE-052** | 5 | APIs finances et retraits vendeur | Backend | P0 | MM-BE-051 | **À FAIRE** |

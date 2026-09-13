@@ -111,6 +111,7 @@ app.use('/api/payment/webhook/stripe', express.raw({ type: 'application/json' })
 app.use('/api/payment/webhook/paystack', express.raw({ type: 'application/json' }));
 
 app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/products', productRoutes);
