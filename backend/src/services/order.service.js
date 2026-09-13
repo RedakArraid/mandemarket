@@ -334,6 +334,14 @@ class OrderService {
         include: { items: true, payment: true, shipping: true },
       });
 
+      // Synchronisation du registre comptable vendeur (MM-BE-050)
+      const LedgerService = require('./ledger.service');
+      if (nextStatus === 'DELIVERED') {
+        await LedgerService.makeOrderFundsAvailable(orderId, tx);
+      } else if (nextStatus === 'REFUNDED') {
+        await LedgerService.recordOrderRefund(orderId, { reason }, tx);
+      }
+
       await tx.auditLog.create({
         data: {
           userId: userId || null,

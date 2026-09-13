@@ -44,10 +44,10 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-044** | 4 | Finaliser le paiement à la livraison (COD avec lock stock) | Backend | P0 | MM-BE-040 | **TERMINÉ** |
 | **MM-FE-040** | 4 | Refaire les pages paiement basées sur le statut serveur | Frontend | P0 | MM-BE-041 | **TERMINÉ** |
 | **MM-INF-040** | 4 | Configurer les environnements prestataires (sandbox/live) | Infra | P0 | MM-BE-040 | **TERMINÉ** |
-| **MM-BE-050** | 5 | Implémenter le ledger vendeur en partie double | Backend | P0 | Phase 4 | **À FAIRE** |
-| **MM-BE-051** | 5 | Sécuriser les retraits (réservation atomique de solde) | Backend | P0 | MM-BE-050 | **À FAIRE** |
-| **MM-BE-052** | 5 | APIs finances et retraits vendeur | Backend | P0 | MM-BE-051 | **À FAIRE** |
-| **MM-FE-050** | 5 | Brancher l'UI finances vendeur sur les 4 soldes réels | Frontend | P0 | MM-BE-052 | **À FAIRE** |
+| **MM-BE-050** | 5 | Implémenter le ledger vendeur en partie double | Backend | P0 | Phase 4 | **TERMINÉ** |
+| **MM-BE-051** | 5 | Sécuriser les retraits (réservation atomique de solde) | Backend | P0 | MM-BE-050 | **TERMINÉ** |
+| **MM-BE-052** | 5 | APIs finances et retraits vendeur | Backend | P0 | MM-BE-051 | **TERMINÉ** |
+| **MM-FE-050** | 5 | Brancher l'UI finances vendeur sur les 4 soldes réels | Frontend | P0 | MM-BE-052 | **TERMINÉ** |
 | **MM-BE-060** | 6 | Gestion complète des produits vendeur (CRUD réel) | Backend | P1 | Phase 5 | **À FAIRE** |
 | **MM-FE-060** | 6 | UI produits vendeur sans données simulées | Frontend | P1 | MM-BE-060 | **À FAIRE** |
 | **MM-BE-061** | 6 | Commandes vendeur filtrées et actions logistiques | Backend | P1 | MM-BE-060 | **À FAIRE** |

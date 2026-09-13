@@ -341,41 +341,116 @@ router.get('/me/orders', requireAuth, requireSeller, async (req, res) => {
   }
 });
 
-// POST demander un versement
-router.post('/me/payouts/request', requireAuth, requireSeller, async (req, res) => {
+// GET /api/sellers/me/balance - 4 soldes réels du vendeur (MM-BE-052 / MM-FE-050)
+router.get('/me/balance', requireAuth, requireSeller, async (req, res) => {
   try {
-    const { amount } = req.body; // en centimes
-    const amountNum = Math.round(Number(amount) || 0);
-    const MIN_PAYOUT = 500000; // 5000 FCFA en centimes
-    if (amountNum < MIN_PAYOUT) {
-      return res.status(400).json({ error: `Montant minimum: ${(MIN_PAYOUT / 100).toLocaleString()} FCFA` });
-    }
-    const seller = await db.seller.findUnique({ where: { id: req.seller.id } });
-    const paidOut = (await db.sellerPayout.aggregate({
-      where: { sellerId: req.seller.id, status: 'completed' },
-      _sum: { amount: true }
-    }))._sum.amount || 0;
-    const availableBalance = seller.totalEarnings - paidOut;
-    if (amountNum > availableBalance) {
-      return res.status(400).json({ error: 'Solde insuffisant.' });
-    }
-    if (!seller.paymentInfo) {
-      return res.status(400).json({ error: 'Configurez vos informations de paiement dans votre profil.' });
-    }
-    const payout = await db.sellerPayout.create({
-      data: {
-        sellerId: req.seller.id,
-        amount: amountNum,
-        status: 'pending',
-        method: seller.paymentInfo?.method
-      }
-    });
-    res.status(201).json(payout);
+    const LedgerService = require('./services/ledger.service');
+    const balances = await LedgerService.getSellerBalances(req.seller.id);
+    res.json(balances);
   } catch (error) {
-    console.error('Erreur POST /sellers/me/payouts/request:', error);
+    console.error('Erreur GET /sellers/me/balance:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+// GET /api/sellers/me/ledger - Registre comptable vendeur paginé (MM-BE-052)
+router.get('/me/ledger', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, type, status } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const where = { sellerId: req.seller.id };
+    if (type) where.type = type;
+    if (status) where.status = status;
+
+    const [entries, total] = await Promise.all([
+      db.sellerLedgerEntry.findMany({
+        where,
+        include: {
+          order: { select: { id: true, orderNumber: true, status: true } },
+          payout: { select: { id: true, status: true, method: true, reference: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: parseInt(limit),
+      }),
+      db.sellerLedgerEntry.count({ where }),
+    ]);
+
+    res.json({
+      entries,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Erreur GET /sellers/me/ledger:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/sellers/me/ledger/export - Export CSV comptable vendeur (MM-FE-050)
+router.get('/me/ledger/export', requireAuth, requireSeller, async (req, res) => {
+  try {
+    const entries = await db.sellerLedgerEntry.findMany({
+      where: { sellerId: req.seller.id },
+      include: {
+        order: { select: { orderNumber: true } },
+        payout: { select: { reference: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+    });
+
+    const headers = 'Date,Type,Description,Montant_Brut_FCFA,Commission_FCFA,Net_Vendeur_FCFA,Statut,Reference\n';
+    const rows = entries.map(e => {
+      const date = new Date(e.createdAt).toISOString().slice(0, 10);
+      const brut = (e.amount / 100).toFixed(2);
+      const com = (e.feeAmount / 100).toFixed(2);
+      const net = (e.netAmount / 100).toFixed(2);
+      const ref = e.order?.orderNumber || e.payout?.reference || e.id.slice(0, 8);
+      const desc = (e.description || '').replace(/,/g, ';');
+      return `${date},${e.type},"${desc}",${brut},${com},${net},${e.status},${ref}`;
+    }).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="ledger-mandemarket-${req.seller.slug}-${new Date().toISOString().slice(0,10)}.csv"`);
+    res.send(headers + rows);
+  } catch (error) {
+    console.error('Erreur export CSV ledger:', error);
+    res.status(500).json({ error: 'Erreur lors de l’export CSV' });
+  }
+});
+
+// POST demander un versement (MM-BE-051 / MM-BE-052)
+const handlePayoutRequest = async (req, res) => {
+  try {
+    const { amount, method } = req.body;
+    const amountNum = Math.round(Number(amount) || 0);
+
+    const LedgerService = require('./services/ledger.service');
+    const payoutMethod = method || req.seller.paymentInfo?.method || 'bank_transfer';
+
+    const payout = await LedgerService.requestPayout({
+      sellerId: req.seller.id,
+      amount: amountNum,
+      method: payoutMethod,
+      metadata: req.seller.paymentInfo || {},
+      userId: req.user.userId,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json(payout);
+  } catch (error) {
+    console.error('Erreur demande versement:', error.message);
+    res.status(error.statusCode || 400).json({ error: error.message || 'Erreur lors de la demande de versement' });
+  }
+};
+
+router.post('/me/payouts', requireAuth, requireSeller, handlePayoutRequest);
+router.post('/me/payouts/request', requireAuth, requireSeller, handlePayoutRequest);
 
 // GET mes versements
 router.get('/me/payouts', requireAuth, requireSeller, async (req, res) => {
@@ -383,7 +458,7 @@ router.get('/me/payouts', requireAuth, requireSeller, async (req, res) => {
     const payouts = await db.sellerPayout.findMany({
       where: { sellerId: req.seller.id },
       orderBy: { createdAt: 'desc' },
-      take: 20
+      take: 50,
     });
     res.json(payouts);
   } catch (error) {
@@ -392,29 +467,22 @@ router.get('/me/payouts', requireAuth, requireSeller, async (req, res) => {
   }
 });
 
-// GET mes revenus / statistiques
+// GET mes revenus / statistiques avec projections du ledger
 router.get('/me/earnings', requireAuth, requireSeller, async (req, res) => {
   try {
-    const seller = await db.seller.findUnique({
-      where: { id: req.seller.id }
-    });
-
-    const [totalOrders, pendingPayouts] = await Promise.all([
-      db.orderItem.count({
-        where: { sellerId: req.seller.id }
-      }),
-      db.sellerPayout.aggregate({
-        where: { sellerId: req.seller.id, status: 'pending' },
-        _sum: { amount: true }
-      })
+    const LedgerService = require('./services/ledger.service');
+    const [balances, totalOrders] = await Promise.all([
+      LedgerService.getSellerBalances(req.seller.id),
+      db.orderItem.count({ where: { sellerId: req.seller.id } }),
     ]);
 
     res.json({
-      totalSales: seller.totalSales,
-      totalEarnings: seller.totalEarnings,
-      commissionRate: seller.commissionRate,
+      totalSales: req.seller.totalSales,
+      totalEarnings: balances.totalEarnings,
+      commissionRate: req.seller.commissionRate,
       totalOrders,
-      pendingPayoutAmount: pendingPayouts._sum.amount || 0
+      balances,
+      pendingPayoutAmount: balances.reserved,
     });
   } catch (error) {
     console.error('Erreur GET /sellers/me/earnings:', error);
@@ -467,21 +535,58 @@ router.get('/admin/payouts', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT traiter un payout (admin)
+// POST /api/admin/payouts/:id/process - Validation / finalisation d'un virement (MM-BE-052)
+router.post('/admin/payouts/:id/process', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reference, status = 'completed' } = req.body;
+    const LedgerService = require('./services/ledger.service');
+
+    const updated = await LedgerService.updatePayoutStatus(req.params.id, status, {
+      reference,
+      adminUserId: req.user.userId,
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, payout: updated });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur traitement versement' });
+  }
+});
+
+// POST /api/admin/payouts/:id/fail - Rejet et libération de la réserve (MM-BE-052)
+router.post('/admin/payouts/:id/fail', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const LedgerService = require('./services/ledger.service');
+
+    const updated = await LedgerService.updatePayoutStatus(req.params.id, 'failed', {
+      reason,
+      adminUserId: req.user.userId,
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, payout: updated });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur rejet versement' });
+  }
+});
+
+// PUT traiter un payout (admin - compatibilité)
 router.put('/admin/payouts/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { status, reference } = req.body;
-    const payout = await db.sellerPayout.update({
-      where: { id: req.params.id },
-      data: {
-        ...(status && { status }),
-        ...(reference && { reference }),
-        ...(status === 'completed' && { paidAt: new Date() })
-      }
+    const { status, reference, reason } = req.body;
+    const LedgerService = require('./services/ledger.service');
+
+    const payout = await LedgerService.updatePayoutStatus(req.params.id, status || 'completed', {
+      reference,
+      reason,
+      adminUserId: req.user.userId,
+      ipAddress: req.ip,
     });
+
     res.json(payout);
   } catch (error) {
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erreur serveur' });
   }
 });
 

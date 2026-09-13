@@ -446,6 +446,31 @@ export class SellerService {
     return apiService.get('/api/sellers/me/earnings');
   }
 
+  static async getMyBalance() {
+    return apiService.get('/api/sellers/me/balance');
+  }
+
+  static async getMyLedger(page = 1, limit = 20) {
+    return apiService.get(`/api/sellers/me/ledger?page=${page}&limit=${limit}`);
+  }
+
+  static async downloadLedgerCsv() {
+    const token = apiService.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/api/sellers/me/ledger/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error('Erreur lors du téléchargement du fichier CSV');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mandemarket-ledger-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
   static async adminGetAll(status?: string) {
     const q = status ? `?status=${status}` : '';
     return apiService.get(`/api/sellers/admin/all${q}`);
@@ -455,8 +480,8 @@ export class SellerService {
     return apiService.put(`/api/sellers/admin/${sellerId}/approve`, data);
   }
 
-  static async requestPayout(amount: number) {
-    return apiService.post('/api/sellers/me/payouts/request', { amount });
+  static async requestPayout(amount: number, method?: string) {
+    return apiService.post('/api/sellers/me/payouts', { amount, method });
   }
 
   static async getMyPayouts() {

@@ -268,6 +268,10 @@ class PaymentService {
         }
       }
 
+      // Enregistrement des écritures comptables vendeur dans le ledger (MM-BE-050)
+      const LedgerService = require('./ledger.service');
+      await LedgerService.recordOrderPayment(order.id, tx);
+
       // Journal d'audit de confirmation
       await tx.auditLog.create({
         data: {

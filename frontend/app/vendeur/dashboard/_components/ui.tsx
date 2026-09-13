@@ -96,20 +96,24 @@ export function SellerCard({
 export function SellerEmptyState({
   title,
   description,
+  message,
   actionLabel,
   actionHref,
   onAction,
 }: {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
+  message?: string;
   actionLabel?: string;
   actionHref?: string;
   onAction?: () => void;
 }) {
+  const displayTitle = title || message || 'Aucun élément trouvé';
+  const displayDesc = description || (title && message ? message : '');
   return (
     <div className="text-center py-14 px-4">
-      <p className="text-lg font-semibold text-brand-navy">{title}</p>
-      <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">{description}</p>
+      <p className="text-lg font-semibold text-brand-navy">{displayTitle}</p>
+      {displayDesc && <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">{displayDesc}</p>}
       {actionLabel && actionHref && (
         <Link
           href={actionHref}

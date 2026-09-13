@@ -29,6 +29,7 @@ import {
   BuildingStorefrontIcon,
   Bars3Icon,
   XMarkIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import {
   AreaChart,
@@ -1184,6 +1185,17 @@ export function PaymentsSection({
   onProfileUpdate: (p: any) => void;
   onPayoutsRefresh: () => Promise<void>;
 }) {
+  const [balanceData, setBalanceData] = useState<{
+    pending: number;
+    available: number;
+    reserved: number;
+    paid: number;
+    currency: string;
+  } | null>(null);
+  const [ledgerEntries, setLedgerEntries] = useState<any[]>([]);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+  const [exportingCsv, setExportingCsv] = useState(false);
+
   const [paymentForm, setPaymentForm] = useState({
     method: profile?.paymentInfo?.method || 'mobile_money',
     accountNumber: profile?.paymentInfo?.accountNumber || '',
@@ -1196,10 +1208,34 @@ export function PaymentsSection({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const paidOut = payouts
-    .filter((p: any) => p.status === 'completed')
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
-  const available = (earnings?.totalEarnings ?? 0) - paidOut;
+  const loadFinancials = useCallback(async () => {
+    try {
+      setLoadingBalance(true);
+      const [bRes, lRes] = await Promise.allSettled([
+        SellerService.getMyBalance(),
+        SellerService.getMyLedger(1, 30),
+      ]);
+      if (bRes.status === 'fulfilled' && bRes.value?.balances) {
+        setBalanceData(bRes.value.balances);
+      }
+      if (lRes.status === 'fulfilled' && lRes.value?.entries) {
+        setLedgerEntries(lRes.value.entries);
+      }
+    } catch (e) {
+      console.error('Erreur chargement données financières:', e);
+    } finally {
+      setLoadingBalance(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFinancials();
+  }, [loadFinancials]);
+
+  const availableCents = balanceData?.available ?? Math.max(0, (earnings?.availableBalance ?? earnings?.totalEarnings ?? 0));
+  const pendingCents = balanceData?.pending ?? (earnings?.pendingPayoutAmount ?? 0);
+  const reservedCents = balanceData?.reserved ?? 0;
+  const paidCents = balanceData?.paid ?? payouts.filter((p: any) => p.status === 'completed').reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
 
   const savePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1209,11 +1245,22 @@ export function PaymentsSection({
     try {
       await SellerService.updateMyProfile({ paymentInfo: paymentForm });
       onProfileUpdate({ paymentInfo: paymentForm });
-      setSuccess('Informations de paiement enregistrées.');
+      setSuccess('Informations de paiement enregistrées avec succès.');
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'enregistrement');
+      setError(err.message || 'Erreur lors de l’enregistrement');
     } finally {
       setSavingPayment(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    try {
+      await SellerService.downloadLedgerCsv();
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de l’export CSV');
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -1221,152 +1268,319 @@ export function PaymentsSection({
     e.preventDefault();
     setError('');
     setSuccess('');
-    const amount = Math.round(parseFloat(payoutAmount) * 100);
-    if (!amount || amount <= 0) {
-      setError('Montant invalide');
+    const rawVal = parseFloat(payoutAmount);
+    const amountInCents = Math.round(rawVal * 100);
+
+    if (!amountInCents || amountInCents < 500000) {
+      setError('Le montant minimum de retrait est de 5 000 FCFA.');
       return;
     }
     if (!profile?.paymentInfo?.accountNumber && !paymentForm.accountNumber) {
-      setError('Configurez vos informations de paiement d\'abord.');
+      setError('Veuillez configurer et enregistrer vos coordonnées de paiement avant de demander un retrait.');
       return;
     }
-    if (amount > available) {
-      setError('Montant supérieur au solde disponible.');
+    if (amountInCents > availableCents) {
+      setError(`Montant supérieur au solde disponible (${fmt(availableCents)}).`);
       return;
     }
+
     setRequestingPayout(true);
     try {
-      await SellerService.requestPayout(amount);
+      await SellerService.requestPayout(amountInCents, paymentForm.method);
       setPayoutAmount('');
-      setSuccess('Demande de versement envoyée.');
-      await onPayoutsRefresh();
+      setSuccess('Votre demande de versement a été soumise avec succès.');
+      await Promise.all([onPayoutsRefresh(), loadFinancials()]);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la demande');
+      setError(err.message || 'Erreur lors de la demande de versement');
     } finally {
       setRequestingPayout(false);
     }
   };
 
+  const LEDGER_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+    SALE_PENDING: { label: 'Vente en attente', color: 'bg-amber-100 text-amber-800' },
+    SALE_AVAILABLE: { label: 'Vente disponible', color: 'bg-emerald-100 text-emerald-800' },
+    REFUND: { label: 'Remboursement', color: 'bg-rose-100 text-rose-800' },
+    PAYOUT_RESERVED: { label: 'Retrait réservé', color: 'bg-indigo-100 text-indigo-800' },
+    PAYOUT_COMPLETED: { label: 'Retrait payé', color: 'bg-blue-100 text-blue-800' },
+    PAYOUT_RELEASED: { label: 'Retrait libéré', color: 'bg-amber-100 text-amber-800' },
+    ADJUSTMENT: { label: 'Ajustement', color: 'bg-purple-100 text-purple-800' },
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Paiements & Versements</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Paiements, Trésorerie & Retraits</h2>
+          <p className="text-sm text-gray-500">Gérez vos revenus transparents, vos 4 soldes certifiés et vos coordonnées bancaires.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={exportingCsv}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm disabled:opacity-50 transition"
+        >
+          <ArrowDownTrayIcon className="w-4 h-4 text-gray-500" />
+          {exportingCsv ? 'Génération...' : 'Exporter le journal comptable (CSV)'}
+        </button>
+      </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
       {success && <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{success}</div>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Balance Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <BanknotesIcon className="w-5 h-5 text-orange-500" />
-            Solde disponible
-          </h3>
-          <p className="text-4xl font-bold text-orange-600 mb-1">{fmt(Math.max(0, available))}</p>
-          <p className="text-sm text-gray-400">
-            Revenus totaux : {fmt(earnings?.totalEarnings ?? 0)} — Versé : {fmt(paidOut)}
-          </p>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500 mb-2">Taux de commission : <strong>{earnings?.commissionRate ?? 0}%</strong></p>
-            {(earnings?.pendingPayoutAmount ?? 0) > 0 && (
-              <p className="text-sm text-yellow-600">En attente : {fmt(earnings.pendingPayoutAmount)}</p>
-            )}
+      {/* Explication du délai de disponibilité */}
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg text-blue-700 mt-0.5">
+            <ClockIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-950 text-sm sm:text-base">Délai de disponibilité des fonds & Sécurité acheteur/vendeur</h4>
+            <p className="text-xs sm:text-sm text-blue-800 mt-1 leading-relaxed">
+              Pour assurer une totale confiance sur la marketplace MandeMarket, les recettes d'une commande payée sont d'abord placées sous le statut <strong>« En attente de livraison »</strong>. Dès que la commande est physiquement livrée et validée (statut <em>LIVRÉE</em>), les fonds nets sont automatiquement débloqués dans votre <strong>« Solde disponible »</strong> et immédiatement retirables.
+            </p>
           </div>
         </div>
+      </div>
 
+      {/* 4 Balances Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Available */}
+        <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-5 bg-gradient-to-br from-white to-emerald-50/40">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Disponible au retrait</span>
+            <BanknotesIcon className="w-5 h-5 text-emerald-600" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-emerald-700 mt-2">{fmt(availableCents)}</p>
+          <p className="text-xs text-gray-500 mt-1">Fonds débloqués, immédiatement virables</p>
+        </div>
+
+        {/* Pending Delivery */}
+        <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-5 bg-gradient-to-br from-white to-amber-50/40">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-amber-700">En attente de livraison</span>
+            <ClockIcon className="w-5 h-5 text-amber-600" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-amber-700 mt-2">{fmt(pendingCents)}</p>
+          <p className="text-xs text-gray-500 mt-1">Commandes en cours d’acheminement</p>
+        </div>
+
+        {/* Reserved Payouts */}
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-200 p-5 bg-gradient-to-br from-white to-indigo-50/40">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700">En cours de virement</span>
+            <CreditCardIcon className="w-5 h-5 text-indigo-600" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-indigo-700 mt-2">{fmt(reservedCents)}</p>
+          <p className="text-xs text-gray-500 mt-1">Demandes de retraits en traitement</p>
+        </div>
+
+        {/* Completed Payouts */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 bg-gradient-to-br from-white to-gray-50/40">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">Total déjà versé</span>
+            <CheckCircleIcon className="w-5 h-5 text-gray-500" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">{fmt(paidCents)}</p>
+          <p className="text-xs text-gray-500 mt-1">Versements effectués avec succès</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Payout Request */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Demander un versement</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <BanknotesIcon className="w-5 h-5 text-orange-500" />
+            Demander un versement
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Minimum requis : <strong>5 000 FCFA</strong>. Aucun frais caché, virement traité sous 24h à 48h.
+          </p>
           <form onSubmit={requestPayout} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA)</label>
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                value={payoutAmount}
-                onChange={(e) => setPayoutAmount(e.target.value)}
-                placeholder="Ex: 50000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Montant à retirer (FCFA)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="5000"
+                  max={Math.max(0, Math.floor(availableCents / 100))}
+                  step="100"
+                  value={payoutAmount}
+                  onChange={(e) => setPayoutAmount(e.target.value)}
+                  placeholder="Ex: 25000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                />
+                <span className="absolute right-3 top-2 text-xs font-medium text-gray-400">FCFA</span>
+              </div>
+              <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
+                <span>Disponible : {fmt(availableCents)}</span>
+                {availableCents > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setPayoutAmount(String(Math.floor(availableCents / 100)))}
+                    className="text-orange-600 hover:underline font-medium"
+                  >
+                    Tout retirer
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={requestingPayout || !payoutAmount || availableCents < 500000 || parseFloat(payoutAmount) * 100 > availableCents}
+              className="w-full py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-semibold shadow-sm transition-colors"
+            >
+              {requestingPayout ? 'Traitement de la demande...' : 'Confirmer la demande de versement'}
+            </button>
+            {availableCents < 500000 && (
+              <p className="text-xs text-amber-600 text-center">
+                Solde disponible insuffisant pour effectuer un retrait (min. 5 000 FCFA).
+              </p>
+            )}
+          </form>
+        </div>
+
+        {/* Payment Info Form */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <CreditCardIcon className="w-5 h-5 text-orange-500" />
+            Coordonnées de versement
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Indiquez le compte Mobile Money ou compte bancaire où recevoir vos fonds.
+          </p>
+          <form onSubmit={savePayment} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Méthode</label>
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) => setPaymentForm((f) => ({ ...f, method: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                >
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Opérateur / Banque</label>
+                <input
+                  value={paymentForm.operator}
+                  onChange={(e) => setPaymentForm((f) => ({ ...f, operator: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  placeholder="Ex: Wave, Orange, Ecobank"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom du titulaire du compte</label>
+                <input
+                  required
+                  value={paymentForm.accountName}
+                  onChange={(e) => setPaymentForm((f) => ({ ...f, accountName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  placeholder="Nom complet tel qu'inscrit auprès de l'opérateur"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">N° de compte ou Téléphone</label>
+                <input
+                  required
+                  value={paymentForm.accountNumber}
+                  onChange={(e) => setPaymentForm((f) => ({ ...f, accountNumber: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  placeholder="Ex: +225 07 00 00 00 00 ou IBAN"
+                />
+              </div>
             </div>
             <button
               type="submit"
-              disabled={requestingPayout || !payoutAmount}
-              className="w-full py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-medium transition-colors"
+              disabled={savingPayment}
+              className="px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-black disabled:opacity-50 text-sm font-medium transition-colors"
             >
-              {requestingPayout ? 'Envoi en cours...' : 'Demander le versement'}
+              {savingPayment ? 'Enregistrement...' : 'Mettre à jour mes coordonnées'}
             </button>
           </form>
         </div>
       </div>
 
-      {/* Payment Info Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <CreditCardIcon className="w-5 h-5 text-orange-500" />
-          Informations de paiement
-        </h3>
-        <form onSubmit={savePayment} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Méthode</label>
-              <select
-                value={paymentForm.method}
-                onChange={(e) => setPaymentForm((f) => ({ ...f, method: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-              >
-                {PAYMENT_METHODS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom du titulaire</label>
-              <input
-                required
-                value={paymentForm.accountName}
-                onChange={(e) => setPaymentForm((f) => ({ ...f, accountName: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                placeholder="Nom complet"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">N° compte / téléphone</label>
-              <input
-                required
-                value={paymentForm.accountNumber}
-                onChange={(e) => setPaymentForm((f) => ({ ...f, accountNumber: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                placeholder="Ex: 07 XX XX XX XX"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Opérateur (optionnel)</label>
-              <input
-                value={paymentForm.operator}
-                onChange={(e) => setPaymentForm((f) => ({ ...f, operator: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                placeholder="Ex: Orange CI"
-              />
-            </div>
+      {/* Double-Entry Ledger Entries Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Journal comptable certifié (Écritures réelles)</h3>
+            <p className="text-xs text-gray-500">Traçabilité complète de chaque transaction, vente, commission et déblocage de solde.</p>
           </div>
-          <button
-            type="submit"
-            disabled={savingPayment}
-            className="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-medium transition-colors"
-          >
-            {savingPayment ? 'Enregistrement...' : 'Enregistrer les informations'}
-          </button>
-        </form>
+          <span className="text-xs font-mono bg-gray-100 px-2.5 py-1 rounded text-gray-600">
+            {ledgerEntries.length} écritures
+          </span>
+        </div>
+
+        {ledgerEntries.length === 0 ? (
+          <EmptyState message="Aucune écriture comptable enregistrée pour le moment." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-100 text-left">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Type d'opération</th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Description / Réf</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Brut</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Commission</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Vendeur</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 text-sm">
+                {ledgerEntries.map((e: any) => {
+                  const badge = LEDGER_TYPE_LABELS[e.type] || { label: e.type, color: 'bg-gray-100 text-gray-700' };
+                  const isNegative = e.type === 'REFUND' || e.type.startsWith('PAYOUT_');
+                  return (
+                    <tr key={e.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-500 text-xs">{fmtDate(e.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900 text-xs sm:text-sm">{e.description || 'Opération de trésorerie'}</div>
+                        <div className="text-xs text-gray-400 font-mono">
+                          {e.order?.orderNumber ? `Commande #${e.order.orderNumber}` : e.payout?.reference ? `Retrait #${e.payout.reference}` : `ID: ${e.id.slice(0, 8)}`}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-700">
+                        {fmt(e.amount ?? 0)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-rose-600 text-xs">
+                        {e.feeAmount ? `-${fmt(e.feeAmount)}` : '0 FCFA'}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-bold ${isNegative ? 'text-rose-600' : 'text-emerald-700'}`}>
+                        {isNegative ? `-${fmt(Math.abs(e.netAmount ?? 0))}` : `+${fmt(e.netAmount ?? 0)}`}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                          {e.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Payouts History */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">Historique des versements</h3>
+          <h3 className="text-base font-semibold text-gray-900">Historique des demandes de versements</h3>
         </div>
         {payouts.length === 0 ? (
-          <EmptyState message="Aucun versement pour le moment." />
+          <EmptyState message="Aucune demande de versement pour le moment." />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
@@ -1374,6 +1588,7 @@ export function PaymentsSection({
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Méthode</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
                 </tr>
@@ -1382,13 +1597,14 @@ export function PaymentsSection({
                 {payouts.map((p: any) => (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-500">{fmtDate(p.createdAt)}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{fmt(p.amount ?? 0)}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">{fmt(p.amount ?? 0)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 capitalize">{p.method?.replace('_', ' ') || 'Mobile Money'}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${PAYOUT_STATUS_COLORS[p.status] || 'bg-gray-100 text-gray-600'}`}>
                         {PAYOUT_STATUS_LABELS[p.status] || p.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm font-mono text-gray-400">{p.reference || '—'}</td>
+                    <td className="px-4 py-3 text-sm font-mono text-gray-500">{p.reference || p.id?.slice(0, 10) || '—'}</td>
                   </tr>
                 ))}
               </tbody>
