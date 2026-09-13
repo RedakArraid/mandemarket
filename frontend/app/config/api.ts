@@ -909,5 +909,48 @@ export class AccountService {
   }
 }
 
+export class ContactService {
+  static async sendMessage(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+    honeypot?: string;
+  }) {
+    const res = await fetch(`${API_BASE_URL}/api/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Erreur lors de l’envoi de votre message');
+    return json;
+  }
+
+  static async subscribeNewsletter(email: string) {
+    const res = await fetch(`${API_BASE_URL}/api/newsletter/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Erreur lors de l’inscription');
+    return json;
+  }
+
+  static async unsubscribeNewsletter(email: string) {
+    const res = await fetch(`${API_BASE_URL}/api/newsletter/unsubscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Erreur lors de la désinscription');
+    return json;
+  }
+}
+
 export default apiService;
+
 

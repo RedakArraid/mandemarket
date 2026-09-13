@@ -67,7 +67,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-brand-soft flex items-center justify-center">
         <div className="text-center">
           <div className="w-14 h-14 border-4 border-orange-200 border-t-brand-orange rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-bold text-brand-navy text-xl">MandinMarket</p>
+          <p className="font-bold text-brand-navy text-xl">MandeMarket</p>
         </div>
       </div>
     );
@@ -225,7 +225,7 @@ export default function HomePage() {
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-xs text-gray-500 truncate max-w-[60%]">
-                      {product.seller?.storeName || 'MandinMarket'}
+                      {product.seller?.storeName || 'MandeMarket'}
                     </span>
                     <button
                       type="button"
@@ -253,7 +253,7 @@ export default function HomePage() {
             <div className="relative min-h-[280px] lg:min-h-[360px]">
               <Image
                 src="/images/brand/vendeur-cta.jpg"
-                alt="Vendeur MandinMarket"
+                alt="Vendeur MandeMarket"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -261,7 +261,7 @@ export default function HomePage() {
             </div>
             <div className="bg-brand-navy text-white p-8 lg:p-12 flex flex-col justify-center">
               <p className="text-brand-orange font-bold text-sm tracking-wider mb-3">POUR LES ENTREPRENEURS</p>
-              <h2 className="text-3xl font-extrabold mb-6">Vendez sur MandinMarket</h2>
+              <h2 className="text-3xl font-extrabold mb-6">Vendez sur MandeMarket</h2>
               <ul className="space-y-3 mb-8">
                 {[
                   'Créez votre boutique en ligne',

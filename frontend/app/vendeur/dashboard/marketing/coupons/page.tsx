@@ -313,7 +313,7 @@ export default function CouponsPage() {
     <div className="space-y-4">
       <SellerPageHeader
         title="Coupons"
-        description="Créez des codes promo adaptés à chaque type d’offre MandinMarket."
+        description="Créez des codes promo adaptés à chaque type d’offre MandeMarket."
         action={
           <SellerActionButton variant="primary" onClick={() => openCreate()}>
             + Créer un coupon

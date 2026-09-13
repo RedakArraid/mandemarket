@@ -70,13 +70,13 @@ export default function VendeurProfilPage() {
       .then((data) => {
         setSeller(data);
         if (data?.storeName) {
-          document.title = `${data.storeName} | MandinMarket`;
+          document.title = `${data.storeName} | MandeMarket`;
         }
       })
       .catch(() => setSeller(null))
       .finally(() => setLoading(false));
     return () => {
-      document.title = 'MandinMarket';
+      document.title = 'MandeMarket';
     };
   }, [slug]);
 
@@ -429,7 +429,7 @@ export default function VendeurProfilPage() {
               En Côte d&apos;Ivoire, comptez généralement 48h à Abidjan et 5 à 7 jours pour le reste du pays.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Pour toute question sur une commande, contactez le vendeur ou le support MandinMarket.
+              Pour toute question sur une commande, contactez le vendeur ou le support MandeMarket.
             </p>
           </div>
         )}

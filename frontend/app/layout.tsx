@@ -39,29 +39,29 @@ const HREFLANG_LANGUAGES: Record<string, string> = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'MandinMarket — Marketplace Afrique & Europe',
-    template: '%s | MandinMarket',
+    default: 'MandeMarket — Marketplace Afrique & Europe',
+    template: '%s | MandeMarket',
   },
   description: 'Achetez en ligne en toute confiance : mode, sacs, accessoires — livraison en Afrique de l\'Ouest et en Europe. Paiement en FCFA ou en EUR.',
-  keywords: 'e-commerce afrique, marketplace côte d\'ivoire, boutique en ligne, MandinMarket',
-  authors: [{ name: 'MandinMarket' }],
+  keywords: 'e-commerce afrique, marketplace côte d\'ivoire, boutique en ligne, MandeMarket',
+  authors: [{ name: 'MandeMarket' }],
   alternates: {
     canonical: SITE_URL,
     languages: HREFLANG_LANGUAGES,
   },
   openGraph: {
-    siteName:        'MandinMarket',
+    siteName:        'MandeMarket',
     type:            'website',
     locale:          'fr_CI',
     alternateLocale: ['fr_FR', 'fr_BE', 'fr_SN', 'en_GH', 'en_GB'],
-    title:           'MandinMarket — Marketplace Afrique & Europe',
+    title:           'MandeMarket — Marketplace Afrique & Europe',
     description:     'Achetez en ligne : mode, sacs, accessoires. Paiement en FCFA ou EUR. Livraison en Afrique de l\'Ouest et en Europe.',
     url:             SITE_URL,
   },
   twitter: {
     card:        'summary_large_image',
-    site:        '@mandinmarket',
-    title:       'MandinMarket — Marketplace Afrique & Europe',
+    site:        '@mandemarket',
+    title:       'MandeMarket — Marketplace Afrique & Europe',
     description: 'Mode, sacs, accessoires — livraison Afrique & Europe.',
   },
   robots: {

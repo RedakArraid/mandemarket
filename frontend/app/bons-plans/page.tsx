@@ -88,7 +88,7 @@ export default function BonsPlansPage() {
           <div className="flex items-center min-h-[320px] lg:min-h-[400px]">
             <div className="max-w-[33.6rem] rounded-2xl border-2 border-[#0B4D32] bg-[#0B4D32]/85 px-6 py-6 md:px-8 md:py-7 shadow-lg">
               <h1 className="text-4xl md:text-5xl font-extrabold mb-3 text-white">
-                Les bons plans MandinMarket
+                Les bons plans MandeMarket
               </h1>
               <p className="text-white text-lg mb-6 font-semibold">
                 Des offres exceptionnelles, uniquement pour vous !

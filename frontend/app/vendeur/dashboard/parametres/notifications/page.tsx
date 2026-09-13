@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { SellerPageHeader, SellerActionButton, SellerCard } from '../../_components/ui';
 
-const ITEMS = ['Nouvelle commande','Nouveau message','Nouvel avis','Nouvel abonné','Stock faible','Paiements','Marketing','Messages MandinMarket'];
+const ITEMS = ['Nouvelle commande','Nouveau message','Nouvel avis','Nouvel abonné','Stock faible','Paiements','Marketing','Messages MandeMarket'];
 
 export default function NotificationsPage() {
   const [on, setOn] = useState<Record<string, boolean>>(Object.fromEntries(ITEMS.map(i=>[i,true])));

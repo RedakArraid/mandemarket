@@ -721,16 +721,37 @@ router.put('/me/orders/:id/status', requireAuth, requireSeller, async (req, res)
     );
 
     // Mettre à jour les informations de transport si expédié
-    if (status === 'SHIPPED' && (carrierName || trackingNumber)) {
-      await db.shipping.updateMany({
-        where: { orderId: req.params.id },
-        data: {
-          carrier: carrierName || 'Transporteur local',
-          trackingNumber: trackingNumber || null,
-          status: 'IN_TRANSIT',
-          shippedAt: new Date(),
-        },
-      });
+    if (status === 'SHIPPED') {
+      if (carrierName || trackingNumber) {
+        await db.shipping.updateMany({
+          where: { orderId: req.params.id },
+          data: {
+            carrier: carrierName || 'Transporteur local',
+            trackingNumber: trackingNumber || null,
+            status: 'IN_TRANSIT',
+            shippedAt: new Date(),
+          },
+        });
+      }
+
+      // Notifier le client par email
+      try {
+        const orderData = await db.order.findUnique({
+          where: { id: req.params.id },
+          include: { customer: true },
+        });
+        if (orderData?.customer?.email) {
+          const emailService = require('./services/email.service');
+          emailService.sendShippingNotification(orderData.customer.email, {
+            orderNumber: orderData.orderNumber || orderData.id,
+            trackingNumber: trackingNumber || 'Suivi local',
+            carrier: carrierName || 'Transporteur local',
+            estimatedDelivery: '3-5 jours ouvrés',
+          }).catch(e => console.warn('[Email] Notification expédition échouée:', e.message));
+        }
+      } catch (err) {
+        console.warn('[Email] Erreur lookup commande pour notification expédition:', err.message);
+      }
     }
 
     res.json({ success: true, order: updated });
@@ -1348,6 +1369,24 @@ router.post('/admin/payouts/:id/process', requireAuth, requireAdmin, async (req,
       ipAddress: req.ip,
     });
 
+    // Notifier le vendeur par email
+    try {
+      const sellerWithUser = await db.seller.findUnique({
+        where: { id: updated.sellerId },
+        include: { user: true },
+      });
+      if (sellerWithUser?.user?.email) {
+        const emailService = require('./services/email.service');
+        emailService.sendPayoutStatusNotification(sellerWithUser.user.email, {
+          amount: updated.amount,
+          status,
+          reference: reference || updated.reference,
+        }).catch(e => console.warn('[Email] Notification payout échouée:', e.message));
+      }
+    } catch (err) {
+      console.warn('[Email] Erreur lookup vendeur pour notification payout:', err.message);
+    }
+
     res.json({ success: true, payout: updated });
   } catch (error) {
     res.status(error.statusCode || 500).json({ error: error.message || 'Erreur traitement versement' });
@@ -1365,6 +1404,24 @@ router.post('/admin/payouts/:id/fail', requireAuth, requireAdmin, async (req, re
       adminUserId: req.user.userId,
       ipAddress: req.ip,
     });
+
+    // Notifier le vendeur par email du refus
+    try {
+      const sellerWithUser = await db.seller.findUnique({
+        where: { id: updated.sellerId },
+        include: { user: true },
+      });
+      if (sellerWithUser?.user?.email) {
+        const emailService = require('./services/email.service');
+        emailService.sendPayoutStatusNotification(sellerWithUser.user.email, {
+          amount: updated.amount,
+          status: 'failed',
+          reference: reason || 'Demande de retrait refusée',
+        }).catch(e => console.warn('[Email] Notification rejet payout échouée:', e.message));
+      }
+    } catch (err) {
+      console.warn('[Email] Erreur lookup vendeur pour notification rejet payout:', err.message);
+    }
 
     res.json({ success: true, payout: updated });
   } catch (error) {

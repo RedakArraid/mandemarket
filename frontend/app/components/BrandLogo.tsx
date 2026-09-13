@@ -28,7 +28,7 @@ export default function BrandLogo({
   const content = (
     <Image
       src={src}
-      alt="MandinMarket"
+      alt="MandeMarket"
       width={280}
       height={43}
       priority
@@ -41,7 +41,7 @@ export default function BrandLogo({
     <Link
       href={href}
       className="inline-flex items-center hover:opacity-90 transition-opacity"
-      aria-label="MandinMarket"
+      aria-label="MandeMarket"
     >
       {content}
     </Link>

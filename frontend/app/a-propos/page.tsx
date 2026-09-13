@@ -35,12 +35,12 @@ export default function AProposPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="text-brand-orange font-bold tracking-wider text-sm mb-3">À PROPOS DE MANDINMARKET</p>
+            <p className="text-brand-orange font-bold tracking-wider text-sm mb-3">À PROPOS DE MANDEMARKET</p>
             <h1 className="text-4xl md:text-5xl font-extrabold text-brand-navy leading-tight mb-5">
               Une marketplace pensée pour rapprocher vendeurs et consommateurs
             </h1>
             <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-              MandinMarket est la marketplace africaine qui permet aux entrepreneurs et créateurs de vendre en ligne,
+              MandeMarket est la marketplace africaine qui permet aux entrepreneurs et créateurs de vendre en ligne,
               et aux clients de découvrir des produits authentiques livrés partout.
             </p>
             <a
@@ -54,49 +54,46 @@ export default function AProposPage() {
             <div className="relative aspect-[4/5] max-w-md mx-auto rounded-[40%_60%_55%_45%/50%_40%_60%_50%] overflow-hidden shadow-2xl">
               <Image
                 src="/images/brand/hero-a-propos.jpg"
-                alt="Entrepreneur MandinMarket"
+                alt="Entrepreneur MandeMarket"
                 fill
                 className="object-cover"
                 sizes="420px"
                 priority
               />
             </div>
-            <p className="mt-4 text-sm text-gray-500 text-center italic">
-              Engagement pour une Afrique qui entreprend.
-            </p>
           </div>
-        </div>
-      </section>
-
-      {/* Mission */}
-      <section id="mission" className="py-12 bg-white">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl">◎</div>
-          <h2 className="text-3xl font-extrabold text-brand-navy mb-4">Notre mission</h2>
-          <p className="text-gray-600 text-lg leading-relaxed">
-            Simplifier le commerce en ligne et offrir à chaque entrepreneur une boutique digitale pour grandir,
-            vendre et toucher de nouveaux clients à travers l&apos;Afrique et au-delà.
-          </p>
         </div>
       </section>
 
       {/* Values */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-3xl font-extrabold text-brand-navy mb-10 text-center">Nos valeurs</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="py-12 bg-white border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {VALUES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl p-6 text-center shadow-card border border-gray-100">
-                <div className="w-14 h-14 rounded-2xl bg-brand-soft text-brand-orange flex items-center justify-center mx-auto mb-4">
-                  <Icon className="w-7 h-7" />
+              <div key={title} className="text-center">
+                <div className="w-12 h-12 rounded-2xl bg-brand-soft text-brand-orange flex items-center justify-center mx-auto mb-4">
+                  <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-brand-navy text-lg mb-2">{title}</h3>
-                <p className="text-gray-500 text-sm">{desc}</p>
+                <h3 className="font-extrabold text-brand-navy mb-2">{title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
-          <p className="mt-10 text-center text-brand-navy/40 font-serif italic text-lg">
-            Le commerce d&apos;aujourd&apos;hui pour l&apos;Afrique de demain
+        </div>
+      </section>
+
+      {/* Story */}
+      <section id="mission" className="py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-brand-orange font-bold text-sm tracking-wider mb-3">NOTRE HISTOIRE</p>
+          <h2 className="text-3xl font-extrabold text-brand-navy mb-6">De l'Afrique vers le monde</h2>
+          <p className="text-gray-600 leading-relaxed mb-6">
+            Née de la volonté de valoriser le savoir-faire africain, MandeMarket offre une vitrine internationale
+            aux créateurs locaux. Nous construisons une infrastructure technologique et logistique solide
+            pour permettre à chaque marchand de développer son activité au-delà des frontières.
+          </p>
+          <p className="text-gray-600 leading-relaxed">
+            Chaque achat soutient directement un entrepreneur et contribue à dynamiser l'économie locale.
           </p>
         </div>
       </section>
@@ -104,7 +101,7 @@ export default function AProposPage() {
       {/* How it works */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-extrabold text-brand-navy mb-10 text-center">Comment fonctionne MandinMarket ?</h2>
+          <h2 className="text-3xl font-extrabold text-brand-navy mb-10 text-center">Comment fonctionne MandeMarket ?</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {STEPS.map((s) => (
               <div key={s.n} className="rounded-2xl border border-gray-100 p-6 bg-brand-cream">
@@ -125,7 +122,7 @@ export default function AProposPage() {
           <div className="relative rounded-3xl overflow-hidden min-h-[280px] flex items-end">
             <Image
               src="/images/brand/equipe-a-propos.jpg"
-              alt="Communauté MandinMarket"
+              alt="Communauté MandeMarket"
               fill
               className="object-cover object-[center_30%]"
               sizes="100vw"
@@ -140,7 +137,7 @@ export default function AProposPage() {
                 href="/compte/register"
                 className="inline-flex items-center gap-2 bg-brand-orange text-white px-6 py-3.5 rounded-xl font-bold hover:bg-brand-orange-dark transition self-start md:self-auto"
               >
-                Rejoindre MandinMarket <ArrowRightIcon className="w-5 h-5" />
+                Rejoindre MandeMarket <ArrowRightIcon className="w-5 h-5" />
               </Link>
             </div>
           </div>
@@ -151,7 +148,7 @@ export default function AProposPage() {
       <section className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-brand-orange px-6 py-12 text-center text-white">
-            <h2 className="text-3xl font-extrabold mb-2">Prêt à rejoindre MandinMarket ?</h2>
+            <h2 className="text-3xl font-extrabold mb-2">Prêt à rejoindre MandeMarket ?</h2>
             <p className="text-white/90 mb-8">Des milliers de clients vous attendent.</p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/compte/register" className="bg-white text-brand-orange px-6 py-3.5 rounded-xl font-bold hover:bg-brand-soft transition">

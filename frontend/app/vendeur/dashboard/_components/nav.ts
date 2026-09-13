@@ -100,7 +100,7 @@ export const SELLER_NAV: SellerNavItem[] = [
     children: [
       { href: '/vendeur/dashboard/communication/messages', label: 'Messages' },
       { href: '/vendeur/dashboard/communication/avis', label: 'Avis' },
-      { href: '/vendeur/dashboard/communication/support', label: 'Support MandinMarket' },
+      { href: '/vendeur/dashboard/communication/support', label: 'Support MandeMarket' },
     ],
   },
   {

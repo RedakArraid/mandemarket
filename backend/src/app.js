@@ -28,6 +28,7 @@ const paymentRoutes = require('./routes.payment');
 const shippingRoutes = require('./routes.shipping');
 const checkoutRoutes = require('./routes.checkout');
 const adminRoutes = require('./routes.admin');
+const contactRoutes = require('./routes.contact');
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -131,6 +132,8 @@ app.use('/api/payment', paymentLimiter, paymentRoutes);
 app.use('/api/shipping', shippingRoutes);
 app.use('/api/checkout', checkoutRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/newsletter', contactRoutes);
 
 app.get('/', (req, res) => {
   res.json({

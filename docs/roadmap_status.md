@@ -62,12 +62,12 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-073** | 7 | Espace compte client complet | Backend | P1 | MM-BE-070 | **TERMINÉ** |
 | **MM-FE-071** | 7 | Finaliser l'interface espace client | Frontend | P1 | MM-BE-073 | **TERMINÉ** |
 | **MM-FE-072** | 7 | Administration opérationnelle (zéro mock) | Frontend | P0 | MM-BE-070 | **TERMINÉ** |
-| **MM-BE-080** | 8 | Emails transactionnels fiables avec file d'attente | Backend | P1 | Phase 7 | **À FAIRE** |
-| **MM-FE-080** | 8 | États d'envoi d'emails honnêtes dans l'UI | Frontend | P2 | MM-BE-080 | **À FAIRE** |
-| **MM-BE-081** | 8 | Expédition et suivi logistique réel | Backend | P1 | MM-BE-080 | **À FAIRE** |
-| **MM-FE-081** | 8 | UI expédition et suivi client/vendeur | Frontend | P1 | MM-BE-081 | **À FAIRE** |
-| **MM-BE-082** | 8 | Endpoints contact et newsletter validés | Backend | P2 | MM-BE-080 | **À FAIRE** |
-| **MM-FE-082** | 8 | Contenus publics, SEO et mentions légales | Frontend | P2 | MM-BE-082 | **À FAIRE** |
+| **MM-BE-080** | 8 | Emails transactionnels fiables avec file d'attente | Backend | P1 | Phase 7 | **TERMINÉ** |
+| **MM-FE-080** | 8 | États d'envoi d'emails honnêtes dans l'UI | Frontend | P2 | MM-BE-080 | **TERMINÉ** |
+| **MM-BE-081** | 8 | Expédition et suivi logistique réel | Backend | P1 | MM-BE-080 | **TERMINÉ** |
+| **MM-FE-081** | 8 | UI expédition et suivi client/vendeur | Frontend | P1 | MM-BE-081 | **TERMINÉ** |
+| **MM-BE-082** | 8 | Endpoints contact et newsletter validés | Backend | P2 | MM-BE-080 | **TERMINÉ** |
+| **MM-FE-082** | 8 | Contenus publics, SEO et mentions légales | Frontend | P2 | MM-BE-082 | **TERMINÉ** |
 | **MM-QA-090** | 9 | Tests backend automatisés (couverture critique) | Backend | P0 | Toutes | **À FAIRE** |
 | **MM-QA-091** | 9 | Tests frontend automatisés (contextes, formulaires) | Frontend | P0 | Toutes | **À FAIRE** |
 | **MM-QA-092** | 9 | Tests E2E de bout en bout | Tous | P0 | MM-QA-090 | **À FAIRE** |
