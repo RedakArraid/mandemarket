@@ -77,8 +77,8 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-INF-093** | 9 | Sauvegardes automatisées & politique RPO/RTO | Infra | P0 | MM-INF-001 | **TERMINÉ** |
 | **MM-INF-094** | 9 | Pipeline CI/CD complet | Infra | P0 | MM-ALL-001 | **TERMINÉ** |
 | **MM-QA-093** | 9 | Vérifications non-fonctionnelles (sécurité, a11y, perf) | Tous | P1 | MM-QA-092 | **TERMINÉ** |
-| **MM-MGR-100** | 10 | Recette fonctionnelle Afrique & Europe | Manager | P0 | Phase 9 | **À FAIRE** |
-| **MM-INF-100** | 10 | Répétition générale en environnement de staging | Infra | P0 | MM-MGR-100 | **À FAIRE** |
-| **MM-MGR-101** | 10 | Comité Go / No-Go formel | Manager | P0 | MM-INF-100 | **À FAIRE** |
-| **MM-INF-101** | 10 | Déploiement en production maîtrisé | Infra | P0 | MM-MGR-101 | **À FAIRE** |
-| **MM-MGR-102** | 10 | Suivi post-release & réconciliation comptable | Manager | P0 | MM-INF-101 | **À FAIRE** |
+| **MM-MGR-100** | 10 | Recette fonctionnelle Afrique & Europe | Manager | P0 | Phase 9 | **TERMINÉ** |
+| **MM-INF-100** | 10 | Répétition générale en environnement de staging | Infra | P0 | MM-MGR-100 | **TERMINÉ** |
+| **MM-MGR-101** | 10 | Comité Go / No-Go formel | Manager | P0 | MM-INF-100 | **TERMINÉ** |
+| **MM-INF-101** | 10 | Déploiement en production maîtrisé | Infra | P0 | MM-MGR-101 | **TERMINÉ** |
+| **MM-MGR-102** | 10 | Suivi post-release & réconciliation comptable | Manager | P0 | MM-INF-101 | **TERMINÉ** |
