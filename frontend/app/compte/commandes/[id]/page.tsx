@@ -117,6 +117,11 @@ export default function OrderDetailPage() {
   const [returnSuccess, setReturnSuccess] = useState(false);
   const [returnError, setReturnError] = useState('');
 
+  const [cancelModal, setCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/compte/login');
@@ -173,6 +178,31 @@ export default function OrderDetailPage() {
       </div>
     );
   }
+
+  const handleCancelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCancelLoading(true);
+    setCancelError('');
+    const token = localStorage.getItem('mandemarket_customer_token');
+    try {
+      const res = await fetch(`${API}/api/account/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: cancelReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCancelError(data.error || 'Erreur lors de l’annulation');
+        return;
+      }
+      setOrder(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
+      setCancelModal(false);
+    } catch {
+      setCancelError('Impossible de contacter le serveur.');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const handleReturnSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,6 +297,14 @@ export default function OrderDetailPage() {
               <PrinterIcon className="w-4 h-4" />
               Facture
             </button>
+            {['PENDING', 'CONFIRMED'].includes(order.status) && (
+              <button
+                onClick={() => { setCancelReason(''); setCancelError(''); setCancelModal(true); }}
+                className="flex items-center gap-1.5 px-3 py-2 border border-red-200 bg-red-50/50 rounded-lg text-sm text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors font-medium"
+              >
+                Annuler la commande
+              </button>
+            )}
             {order.status === 'DELIVERED' && !returnSuccess && (
               <button
                 onClick={() => setReturnModal(true)}
@@ -539,6 +577,55 @@ export default function OrderDetailPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Cancel order modal */}
+      {cancelModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4" onClick={() => setCancelModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">
+              Annuler cette commande ?
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Cette action est irréversible. Les articles seront remis en stock et votre commande passera au statut annulé.
+            </p>
+            {cancelError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {cancelError}
+              </div>
+            )}
+            <form onSubmit={handleCancelSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Motif d'annulation <span className="font-normal text-gray-400">(optionnel)</span>
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  rows={2}
+                  placeholder="Ex: Changement d'avis, erreur de sélection..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none text-sm"
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCancelModal(false)}
+                  className="flex-1 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
+                >
+                  Ne pas annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelLoading}
+                  className="flex-1 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm disabled:opacity-60"
+                >
+                  {cancelLoading ? 'Annulation...' : 'Confirmer l’annulation'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

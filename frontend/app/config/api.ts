@@ -755,4 +755,159 @@ export class ReviewService {
   }
 }
 
+export class AdminService {
+  static async getUsers(page = 1, limit = 20, search?: string, role?: string) {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search) q.set('search', search);
+    if (role) q.set('role', role);
+    return apiService.get(`/api/admin/users?${q}`);
+  }
+
+  static async createUser(data: { email: string; name?: string; password: string; role: string }) {
+    return apiService.post('/api/admin/users', data);
+  }
+
+  static async updateUserRole(id: string, role: string) {
+    return apiService.put(`/api/admin/users/${id}/role`, { role });
+  }
+
+  static async revokeUserSessions(id: string) {
+    return apiService.post(`/api/admin/users/${id}/revoke-sessions`);
+  }
+
+  static async getUserAudit(id: string) {
+    return apiService.get(`/api/admin/users/${id}/audit`);
+  }
+
+  static async getAuditLogs(page = 1, limit = 50, entity?: string, action?: string) {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (entity) q.set('entity', entity);
+    if (action) q.set('action', action);
+    return apiService.get(`/api/admin/audit-logs?${q}`);
+  }
+
+  static async getReviews(status?: string, page = 1, limit = 50) {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (status) q.set('status', status);
+    return apiService.get(`/api/admin/reviews?${q}`);
+  }
+
+  static async moderateReview(id: string, status: 'approved' | 'rejected' | 'pending') {
+    return apiService.put(`/api/admin/reviews/${id}/moderate`, { status });
+  }
+
+  static async getReturns(status?: string, page = 1, limit = 50) {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (status) q.set('status', status);
+    return apiService.get(`/api/admin/returns?${q}`);
+  }
+
+  static async approveReturn(id: string) {
+    return apiService.post(`/api/admin/returns/${id}/approve`);
+  }
+
+  static async rejectReturn(id: string, reason?: string) {
+    return apiService.post(`/api/admin/returns/${id}/reject`, { reason });
+  }
+
+  static async processRefund(id: string) {
+    return apiService.post(`/api/admin/returns/${id}/process-refund`);
+  }
+}
+
+export class AccountService {
+  private static getCustomerToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('mandemarket_customer_token');
+    }
+    return null;
+  }
+
+  private static async request(endpoint: string, options: RequestInit = {}) {
+    const token = this.getCustomerToken();
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `Erreur requête (${res.status})`);
+    }
+    return data;
+  }
+
+  static async getMe() {
+    return this.request('/api/account/me');
+  }
+
+  static async updateProfile(data: { firstName?: string; lastName?: string; phone?: string | null }) {
+    return this.request('/api/account/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async changePassword(data: { currentPassword: string; newPassword: string }) {
+    return this.request('/api/account/password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getAddress() {
+    return this.request('/api/account/address');
+  }
+
+  static async saveAddress(data: { street: string; city: string; postalCode?: string; country: string; isDefault?: boolean }) {
+    return this.request('/api/account/address', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteAddress() {
+    return this.request('/api/account/address', {
+      method: 'DELETE',
+    });
+  }
+
+  static async getOrders(page = 1, limit = 10) {
+    return this.request(`/api/account/orders?page=${page}&limit=${limit}`);
+  }
+
+  static async getOrder(id: string) {
+    return this.request(`/api/account/orders/${id}`);
+  }
+
+  static async cancelOrder(id: string, reason?: string) {
+    return this.request(`/api/account/orders/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  static async requestReturn(id: string, data: { reason: string; description?: string }) {
+    return this.request(`/api/account/orders/${id}/return-request`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getReturns() {
+    return this.request('/api/account/returns');
+  }
+
+  static async deleteAccount(password: string) {
+    return this.request('/api/account/account', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    });
+  }
+}
+
 export default apiService;
+

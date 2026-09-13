@@ -12,7 +12,10 @@ import {
   ArrowPathIcon,
   Cog6ToothIcon,
   BuildingStorefrontIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  ChatBubbleLeftRightIcon,
+  ArrowUturnLeftIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import AuthGuard from '../components/AuthGuard';
 import ProductsManager from '../components/ProductsManager';
@@ -25,6 +28,9 @@ import AlertsManager from '../components/AlertsManager';
 import SellersManager from '../components/SellersManager';
 import PayoutsManager from '../components/PayoutsManager';
 import UsersManager from '../components/UsersManager';
+import ReviewsModerationManager from '../components/ReviewsModerationManager';
+import ReturnsModerationManager from '../components/ReturnsModerationManager';
+import AuditLogsManager from '../components/AuditLogsManager';
 import { apiService, CategoryService, SellerService } from '../../config/api';
 
 // Interface Category définie localement
@@ -90,7 +96,7 @@ export default function AdminDashboard() {
   } | null>(null);
 
   // États pour la navigation
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'customers' | 'vendeurs' | 'payouts' | 'utilisateurs'>('dashboard');
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'customers' | 'vendeurs' | 'payouts' | 'utilisateurs' | 'avis' | 'retours' | 'audit'>('dashboard');
 
   // Vérifier l'authentification au chargement (admin/manager uniquement, pas vendeurs)
   useEffect(() => {
@@ -344,20 +350,55 @@ export default function AdminDashboard() {
                     <BanknotesIcon className="w-5 h-5" />
                     Versements
                   </button>
+                  <button
+                    onClick={() => setActiveSection('avis')}
+                    className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                      activeSection === 'avis'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                    Avis clients
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('retours')}
+                    className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                      activeSection === 'retours'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <ArrowUturnLeftIcon className="w-5 h-5" />
+                    Retours & Litiges
+                  </button>
                 </>
               )}
               {user?.role === 'admin' && (
-                <button
-                  onClick={() => setActiveSection('utilisateurs')}
-                  className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
-                    activeSection === 'utilisateurs'
-                      ? 'bg-brand-orange text-white'
-                      : 'text-white/80 hover:bg-white/10'
-                  }`}
-                >
-                  <UsersIcon className="w-5 h-5" />
-                  Utilisateurs
-                </button>
+                <>
+                  <button
+                    onClick={() => setActiveSection('utilisateurs')}
+                    className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                      activeSection === 'utilisateurs'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <UsersIcon className="w-5 h-5" />
+                    Utilisateurs
+                  </button>
+                  <button
+                    onClick={() => setActiveSection('audit')}
+                    className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 ${
+                      activeSection === 'audit'
+                        ? 'bg-brand-orange text-white'
+                        : 'text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    <ShieldCheckIcon className="w-5 h-5" />
+                    Audit système
+                  </button>
+                </>
               )}
             </nav>
           </div>
@@ -429,6 +470,24 @@ export default function AdminDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-8">Gestion des Utilisateurs</h1>
               <UsersManager token={token!} />
+            </div>
+          )}
+          {activeSection === 'avis' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Modération des Avis</h1>
+              <ReviewsModerationManager />
+            </div>
+          )}
+          {activeSection === 'retours' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Gestion des Retours</h1>
+              <ReturnsModerationManager />
+            </div>
+          )}
+          {activeSection === 'audit' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Journal d’Audit Système</h1>
+              <AuditLogsManager />
             </div>
           )}
         </main>

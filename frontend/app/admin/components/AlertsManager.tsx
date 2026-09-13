@@ -40,61 +40,66 @@ const AlertsManager: React.FC<AlertsManagerProps> = ({
   const [filter, setFilter] = useState<'all' | 'unread' | 'critical'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | Alert['type']>('all');
 
-  // Données de test
-  const mockAlerts: Alert[] = [
-    {
-      id: '1',
-      type: 'stock',
-      priority: 'critical',
-      title: 'Stock Critique',
-      message: 'Le produit "Sac à main verni brillant" n\'a plus que 2 unités en stock',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
-      actionRequired: true,
-      isRead: false
-    },
-    {
-      id: '2',
-      type: 'order',
-      priority: 'high',
-      title: 'Commande en Retard',
-      message: 'La commande #CMD-001 est en retard de livraison (3 jours)',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2h ago
-      actionRequired: true,
-      isRead: false
-    },
-    {
-      id: '3',
-      type: 'customer',
-      priority: 'medium',
-      title: 'Client VIP',
-      message: 'Marie Dupont (client VIP) a ajouté 3 articles à son panier sans finaliser',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4h ago
-      actionRequired: false,
-      isRead: true
-    },
-    {
-      id: '4',
-      type: 'system',
-      priority: 'low',
-      title: 'Sauvegarde Réussie',
-      message: 'La sauvegarde automatique quotidienne s\'est déroulée avec succès',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-      actionRequired: false,
-      isRead: true
-    },
-    {
-      id: '5',
-      type: 'stock',
-      priority: 'medium',
-      title: 'Stock Faible',
-      message: '5 produits ont un stock inférieur à 10 unités',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6h ago
-      actionRequired: true,
-      isRead: false
-    }
-  ];
+  // Normalisation des alertes réelles issues de l'API /api/dashboard/alerts
+  const normalizedAlerts: Alert[] = (() => {
+    if (Array.isArray(alerts)) return alerts;
+    if (!alerts || typeof alerts !== 'object') return [];
 
-  const displayAlerts = alerts.length > 0 ? alerts : mockAlerts;
+    const raw: any = alerts;
+    const list: Alert[] = [];
+
+    if (Array.isArray(raw.stock?.items)) {
+      raw.stock.items.forEach((p: any) => {
+        const isOut = p.stock === 0;
+        list.push({
+          id: `stock-${p.id}`,
+          type: 'stock',
+          priority: isOut ? 'critical' : 'high',
+          title: isOut ? 'Rupture de stock critique' : 'Stock faible',
+          message: isOut
+            ? `Le produit "${p.name}" est en rupture de stock totale.`
+            : `Le produit "${p.name}" n'a plus que ${p.stock} unités restantes.`,
+          timestamp: p.updatedAt || new Date().toISOString(),
+          actionRequired: true,
+          isRead: false,
+        });
+      });
+    }
+
+    if (Array.isArray(raw.orders?.items)) {
+      raw.orders.items.forEach((o: any) => {
+        list.push({
+          id: `order-${o.id}`,
+          type: 'order',
+          priority: 'high',
+          title: 'Commande en attente prolongée',
+          message: `La commande #${o.id.substring(0, 8).toUpperCase()} est en attente depuis plus de 24h.`,
+          timestamp: o.createdAt || new Date().toISOString(),
+          actionRequired: true,
+          isRead: false,
+        });
+      });
+    }
+
+    if (Array.isArray(raw.promotions?.items)) {
+      raw.promotions.items.forEach((pr: any) => {
+        list.push({
+          id: `promo-${pr.id}`,
+          type: 'system',
+          priority: 'medium',
+          title: 'Promotion expirant bientôt',
+          message: `Le coupon promo "${pr.code || pr.name}" expire sous peu.`,
+          timestamp: pr.endDate || new Date().toISOString(),
+          actionRequired: false,
+          isRead: false,
+        });
+      });
+    }
+
+    return list;
+  })();
+
+  const displayAlerts = normalizedAlerts;
 
   // Filtrage des alertes
   const filteredAlerts = displayAlerts.filter(alert => {

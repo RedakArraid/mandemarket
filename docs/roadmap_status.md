@@ -55,13 +55,13 @@ Document de pilotage de l'Agent Manager selon la tâche `MM-MGR-001` de `PLAN_FI
 | **MM-BE-063** | 6 | Promotions plateforme / vendeur | Backend | P1 | MM-BE-061 | **TERMINÉ** |
 | **MM-BE-064** | 6 | Équipe boutique et permissions RBAC | Backend | P2 | MM-BE-061 | **TERMINÉ** |
 | **MM-FE-061** | 6 | Éliminer notifySoon et brancher tous les modules vendeur | Frontend | P0 | MM-BE-060 | **TERMINÉ** |
-| **MM-BE-070** | 7 | Gestion des utilisateurs admin (CRUD réel) | Backend | P1 | Phase 6 | **À FAIRE** |
-| **MM-FE-070** | 7 | Remplacer UsersManager fictif par l'API réelle | Frontend | P0 | MM-BE-070 | **À FAIRE** |
-| **MM-BE-071** | 7 | Avis fiables et vérifiés | Backend | P1 | MM-BE-070 | **À FAIRE** |
-| **MM-BE-072** | 7 | Retours, avoirs et remboursements | Backend | P0 | MM-BE-070 | **À FAIRE** |
-| **MM-BE-073** | 7 | Espace compte client complet | Backend | P1 | MM-BE-070 | **À FAIRE** |
-| **MM-FE-071** | 7 | Finaliser l'interface espace client | Frontend | P1 | MM-BE-073 | **À FAIRE** |
-| **MM-FE-072** | 7 | Administration opérationnelle (zéro mock) | Frontend | P0 | MM-BE-070 | **À FAIRE** |
+| **MM-BE-070** | 7 | Gestion des utilisateurs admin (CRUD réel) | Backend | P1 | Phase 6 | **TERMINÉ** |
+| **MM-FE-070** | 7 | Remplacer UsersManager fictif par l'API réelle | Frontend | P0 | MM-BE-070 | **TERMINÉ** |
+| **MM-BE-071** | 7 | Avis fiables et vérifiés | Backend | P1 | MM-BE-070 | **TERMINÉ** |
+| **MM-BE-072** | 7 | Retours, avoirs et remboursements | Backend | P0 | MM-BE-070 | **TERMINÉ** |
+| **MM-BE-073** | 7 | Espace compte client complet | Backend | P1 | MM-BE-070 | **TERMINÉ** |
+| **MM-FE-071** | 7 | Finaliser l'interface espace client | Frontend | P1 | MM-BE-073 | **TERMINÉ** |
+| **MM-FE-072** | 7 | Administration opérationnelle (zéro mock) | Frontend | P0 | MM-BE-070 | **TERMINÉ** |
 | **MM-BE-080** | 8 | Emails transactionnels fiables avec file d'attente | Backend | P1 | Phase 7 | **À FAIRE** |
 | **MM-FE-080** | 8 | États d'envoi d'emails honnêtes dans l'UI | Frontend | P2 | MM-BE-080 | **À FAIRE** |
 | **MM-BE-081** | 8 | Expédition et suivi logistique réel | Backend | P1 | MM-BE-080 | **À FAIRE** |

@@ -29,6 +29,7 @@ interface CustomerAuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  refreshCustomer: () => Promise<void>;
   logout: () => void;
 }
 
@@ -37,6 +38,28 @@ const CustomerAuthContext = createContext<CustomerAuthContextType | null>(null);
 export function CustomerAuthProvider({ children }: { children: React.ReactNode }) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshCustomer = useCallback(async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setCustomer(null);
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/account/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCustomer(data.customer);
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+        setCustomer(null);
+      }
+    } catch {
+      // ignore network errors on refresh
+    }
+  }, []);
 
   // Au montage, valider le token si présent
   useEffect(() => {
@@ -102,6 +125,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
         isLoading,
         login,
         register,
+        refreshCustomer,
         logout,
       }}
     >

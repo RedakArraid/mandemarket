@@ -40,36 +40,94 @@ router.get('/:productId', async (req, res) => {
   }
 });
 
-// POST /api/reviews - Créer un nouvel avis
+// POST /api/reviews - Créer un nouvel avis (MM-BE-071)
 router.post('/', async (req, res) => {
   try {
     const data = reviewSchema.parse(req.body);
+    const cleanEmail = data.customerEmail ? data.customerEmail.toLowerCase().trim() : null;
     
     // Vérifier que le produit existe
-    const product = await db.product.findUnique({ where: { id: data.productId } });
+    const product = await db.product.findUnique({
+      where: { id: data.productId },
+      include: { seller: true },
+    });
     if (!product) {
       return res.status(404).json({ error: 'Produit non trouvé' });
     }
 
-    // Créer l'avis
+    // 1. Limiter un avis par acheteur pour ce produit
+    if (cleanEmail) {
+      const existing = await db.review.findFirst({
+        where: {
+          productId: data.productId,
+          customerEmail: cleanEmail,
+        },
+      });
+      if (existing) {
+        return res.status(409).json({ error: 'Vous avez déjà évalué ce produit.' });
+      }
+    }
+
+    // 2. Calculer isVerified côté serveur (achat vérifié et livré/expédié)
+    let isVerified = false;
+    if (cleanEmail) {
+      const deliveredOrder = await db.order.findFirst({
+        where: {
+          customer: { email: cleanEmail },
+          status: { in: ['DELIVERED', 'SHIPPED'] },
+          items: { some: { productId: data.productId } },
+        },
+      });
+      isVerified = Boolean(deliveredOrder);
+    }
+
+    // 3. Créer l'avis (approuvé automatiquement si achat vérifié, sinon en attente de modération)
+    const reviewStatus = isVerified ? 'approved' : 'pending';
+
     const review = await db.review.create({
       data: {
         productId: data.productId,
-        customerName: data.customerName,
-        customerEmail: data.customerEmail || null,
+        customerName: data.customerName.trim(),
+        customerEmail: cleanEmail,
         rating: data.rating,
-        title: data.title || null,
-        comment: data.comment,
-        isVerified: data.isVerified || false,
-        status: 'approved', // Par défaut approuvé, peut être changé en 'pending' pour modération
+        title: data.title ? data.title.trim() : null,
+        comment: data.comment.trim(),
+        isVerified,
+        status: reviewStatus,
       },
     });
 
-    res.status(201).json({ review });
+    // 4. Recalculer les notes produit et vendeur si l'avis est approuvé
+    if (reviewStatus === 'approved' && product.sellerId) {
+      const allSellerReviews = await db.review.findMany({
+        where: {
+          product: { sellerId: product.sellerId },
+          status: 'approved',
+        },
+        select: { rating: true },
+      });
+      const avg = allSellerReviews.length > 0
+        ? allSellerReviews.reduce((s, r) => s + r.rating, 0) / allSellerReviews.length
+        : review.rating;
+
+      await db.seller.update({
+        where: { id: product.sellerId },
+        data: {
+          rating: parseFloat(avg.toFixed(2)),
+          reviewCount: allSellerReviews.length,
+        },
+      });
+    }
+
+    res.status(201).json({
+      review,
+      message: isVerified
+        ? 'Votre avis vérifié a été publié immédiatement.'
+        : 'Votre avis a été soumis et sera validé par notre équipe après modération.',
+    });
   } catch (err) {
     console.error('Erreur lors de la création de l\'avis:', err);
     if (err.errors) {
-      // Erreur de validation Zod
       res.status(400).json({ error: 'Données invalides', details: err.errors });
     } else {
       res.status(400).json({ error: err.message || 'Erreur lors de la création de l\'avis' });
